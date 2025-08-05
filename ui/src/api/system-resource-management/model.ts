@@ -32,7 +32,7 @@ const getSelectModelList: (
   data?: ListModelRequest,
   loading?: Ref<boolean>,
 ) => Promise<Result<Array<Model>>> = (data, loading) => {
-  return get(`${prefix}/model_list`, data, loading).then((ok) => {
+  return get(`${prefix}/model/model_list`, data, loading).then((ok) => {
     return {
       ...ok,
       data: [

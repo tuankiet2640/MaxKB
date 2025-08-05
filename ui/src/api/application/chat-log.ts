@@ -3,15 +3,10 @@ import {
   get,
   post,
   exportExcelPost,
-  postStream,
   del,
   put,
-  request,
-  download,
-  exportFile,
 } from '@/request/index'
 import type {pageRequest} from '@/api/type/common'
-import type {ApplicationFormType} from '@/api/type/application'
 import {type Ref} from 'vue'
 import useStore from '@/stores'
 

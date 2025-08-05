@@ -96,18 +96,24 @@
 
 <script setup lang="ts">
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, inject } from 'vue'
 import { groupBy, set } from 'lodash'
-import applicationApi from '@/api/application/application'
-import useStore from '@/stores'
 import NodeCascader from '@/workflow/common/NodeCascader.vue'
 import type { FormInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+const getApplicationDetail = inject('getApplicationDetail') as any
 const route = useRoute()
-const {
-  params: { id },
-} = route as any
-const { model } = useStore()
+
+const {} = route as any
+
+const apiType = computed(() => {
+  if (route.path.includes('resource-management')) {
+    return 'systemManage'
+  } else {
+    return 'workspace'
+  }
+})
 
 const props = defineProps<{ nodeModel: any }>()
 const modelOptions = ref<any>(null)
@@ -153,10 +159,22 @@ const form_data = computed({
   },
 })
 
+const application = getApplicationDetail()
 function getSelectModel() {
-  model.asyncGetSelectModel({ model_type: 'STT' }).then((res: any) => {
-    modelOptions.value = groupBy(res?.data, 'provider')
-  })
+  const obj =
+    apiType.value === 'systemManage'
+      ? {
+          model_type: 'STT',
+          workspace_id: application.value?.workspace_id,
+        }
+      : {
+          model_type: 'STT',
+        }
+  loadSharedApi({ type: 'model', systemType: apiType.value })
+    .getSelectModelList(obj)
+    .then((res: any) => {
+      modelOptions.value = groupBy(res?.data, 'provider')
+    })
 }
 onMounted(() => {
   getSelectModel()

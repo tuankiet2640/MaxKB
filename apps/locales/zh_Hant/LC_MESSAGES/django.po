@@ -5196,7 +5196,7 @@ msgstr "創建系統知識庫"
 #: apps/resource_manage/views/document.py:571
 #: apps/resource_manage/views/document.py:585
 msgid "System Knowledge/Documentation"
-msgstr "知識庫/文檔"
+msgstr "系統知識庫/文檔"
 
 #: apps/resource_manage/views/document.py:51
 #: apps/resource_manage/views/document.py:52
@@ -5445,7 +5445,7 @@ msgstr "段落列表"
 #: apps/resource_manage/views/paragraph.py:344
 #: apps/resource_manage/views/paragraph.py:370
 msgid "System Knowledge/Documentation/Paragraph"
-msgstr "知識庫/文檔/段落"
+msgstr "系統知識庫/文檔/段落"
 
 #: apps/resource_manage/views/paragraph.py:45
 #: apps/resource_manage/views/paragraph.py:46
@@ -5532,7 +5532,7 @@ msgstr "問題列表"
 #: apps/resource_manage/views/problem.py:158
 #: apps/resource_manage/views/problem.py:182
 msgid "System Knowledge/Documentation/Paragraph/Question"
-msgstr "知識庫/文檔/段落/問題"
+msgstr "系統知識庫/文檔/段落/問題"
 
 #: apps/resource_manage/views/problem.py:44
 #: apps/resource_manage/views/problem.py:45
@@ -8488,6 +8488,21 @@ msgstr "CAS"
 msgid "LDAP"
 msgstr "LDAP"
 
+msgid "OIDC"
+msgstr "OIDC"
+
+msgid "OAuth2"
+msgstr "OAuth2"
+
+msgid "dingtalk"
+msgstr "钉钉"
+
+msgid "wecom"
+msgstr "企业微信"
+
+msgid "lark"
+msgstr "飞书"
+
 msgid "Get tool list"
 msgstr "獲取工具列表"
 
@@ -8634,3 +8649,39 @@ msgstr "文件不存在, 僅支持手動上傳的文檔"
 
 msgid "Resource"
 msgstr "資源管理"
+
+msgid "LDAP configuration not found or not active"
+msgstr "LDAP 配置未找到或未激活"
+
+msgid "Lark configuration not found or not active"
+msgstr "Lark 配置未找到或未激活"
+
+msgid "Failed to get Lark collaborators"
+msgstr "獲取 Lark 協作者失敗"
+
+msgid "Failed to get Lark user details"
+msgstr "獲取 Lark 用戶詳情失敗"
+
+msgid "WeCom configuration not found or not active"
+msgstr "WeCom 配置未找到或未激活"
+
+msgid "Failed to get WeCom access token"
+msgstr "獲取 WeCom 訪問權杖失敗"
+
+msgid "Failed to get WeCom agent info"
+msgstr "獲取 WeCom 智能助手信息失敗"
+
+msgid "Failed to get WeCom department users"
+msgstr "獲取 WeCom 部門用戶失敗"
+
+msgid "Failed to get WeCom user info"
+msgstr "獲取 WeCom 用戶詳情失敗"
+
+msgid "Publish status"
+msgstr "發佈狀態"
+
+msgid "Unpublished"
+msgstr "未發佈"
+
+msgid "Published"
+msgstr "已發佈"

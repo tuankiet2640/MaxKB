@@ -47,12 +47,19 @@ class Group(Enum):
     SYSTEM_RES_KNOWLEDGE_PROBLEM = "SYSTEM_RESOURCE_KNOWLEDGE_PROBLEM"
 
     SYSTEM_KNOWLEDGE_HIT_TEST = "SYSTEM_KNOWLEDGE_HIT_TEST"
+    SYSTEM_RES_KNOWLEDGE_HIT_TEST = "SYSTEM_RESOURCE_KNOWLEDGE_HIT_TEST"
     SYSTEM_KNOWLEDGE_CHAT_USER = "SYSTEM_KNOWLEDGE_CHAT_USER"
+    SYSTEM_RES_KNOWLEDGE_CHAT_USER = "SYSTEM_RESOURCE_KNOWLEDGE_CHAT_USER"
+
 
     MODEL = "MODEL"
     SYSTEM_MODEL = "SYSTEM_MODEL"
     SYSTEM_RES_MODEL = "SYSTEM_RESOURCE_MODEL"
     SYSTEM_RES_APPLICATION = "SYSTEM_RESOURCE_APPLICATION"
+    SYSTEM_RES_APPLICATION_OVERVIEW = "SYSTEM_RESOURCE_APPLICATION_OVERVIEW"
+    SYSTEM_RES_APPLICATION_ACCESS = "SYSTEM_RESOURCE_APPLICATION_ACCESS"
+    SYSTEM_RES_APPLICATION_CHAT_USER = "SYSTEM_RESOURCE_APPLICATION_CHAT_USER"
+    SYSTEM_RES_APPLICATION_CHAT_LOG = "SYSTEM_RESOURCE_APPLICATION_CHAT_LOG"
 
     TOOL = "TOOL"
     SYSTEM_TOOL = "SYSTEM_TOOL"
@@ -90,11 +97,11 @@ class SystemGroup(Enum):
     USER_MANAGEMENT = "USER_MANAGEMENT"
     ROLE = "ROLE"
     WORKSPACE = "WORKSPACE"
-    RESOURCE = "RESOURCE"
-    # RESOURCE_APPLICATION = "RESOURCE_APPLICATION"
-    # RESOURCE_KNOWLEDGE = "RESOURCE_KNOWLEDGE"
-    # RESOURCE_TOOL = "RESOURCE_TOOL"
-    # RESOURCE_MODEL = "RESOURCE_MODEL"
+    # RESOURCE = "RESOURCE"
+    RESOURCE_APPLICATION = "RESOURCE_APPLICATION"
+    RESOURCE_KNOWLEDGE = "RESOURCE_KNOWLEDGE"
+    RESOURCE_TOOL = "RESOURCE_TOOL"
+    RESOURCE_MODEL = "RESOURCE_MODEL"
     RESOURCE_PERMISSION = "RESOURCE_PERMISSION"
     SHARED_KNOWLEDGE = "SHARED_KNOWLEDGE"
     SHARED_MODEL = "SHARED_MODEL"
@@ -113,7 +120,6 @@ class WorkspaceGroup(Enum):
     TOOL = "TOOL"
     RESOURCE_PERMISSION = "RESOURCE_PERMISSION"
     OTHER = "OTHER"
-
 
 
 class UserGroup(Enum):
@@ -280,10 +286,10 @@ Permission_Label = {
     SystemGroup.USER_MANAGEMENT.value: _("User Management"),
     SystemGroup.ROLE.value: _("Role"),
     SystemGroup.WORKSPACE.value: _("Workspace"),
-    # SystemGroup.RESOURCE_APPLICATION.value: _("Resource Application"),
-    # SystemGroup.RESOURCE_KNOWLEDGE.value: _("Resource Knowledge"),
-    # SystemGroup.RESOURCE_TOOL.value: _("Resource Tool"),
-    # SystemGroup.RESOURCE_MODEL.value: _("Resource Model"),
+    SystemGroup.RESOURCE_APPLICATION.value: _("Resource Application"),
+    SystemGroup.RESOURCE_KNOWLEDGE.value: _("Resource Knowledge"),
+    SystemGroup.RESOURCE_TOOL.value: _("Resource Tool"),
+    SystemGroup.RESOURCE_MODEL.value: _("Resource Model"),
     SystemGroup.RESOURCE_PERMISSION.value: _("Resource Permission"),
     SystemGroup.SHARED_KNOWLEDGE.value: _("Shared Knowledge"),
     SystemGroup.SHARED_MODEL.value: _("Shared Model"),
@@ -355,6 +361,8 @@ Permission_Label = {
     Group.SYSTEM_RES_KNOWLEDGE.value: _("Knowledge"),
     Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT.value: _("Document"),
     Group.SYSTEM_RES_KNOWLEDGE_PROBLEM.value: _("Problem"),
+    Group.SYSTEM_RES_KNOWLEDGE_HIT_TEST.value: _("Hit-Test"),
+    Group.SYSTEM_RES_KNOWLEDGE_CHAT_USER.value: _("Dialogue users"),
     Group.WORKSPACE_USER_GROUP.value: _("User Group"),
     Group.WORKSPACE_CHAT_USER.value: _("Chat User"),
     Group.WORKSPACE_WORKSPACE.value: _("Workspace"),
@@ -364,7 +372,11 @@ Permission_Label = {
     Group.MODEL_WORKSPACE_USER_RESOURCE_PERMISSION.value: _("Model"),
     Group.TOOL_WORKSPACE_USER_RESOURCE_PERMISSION.value: _("Tool"),
     Group.SYSTEM_RES_APPLICATION.value: _("Application"),
-    SystemGroup.RESOURCE.value: _("Resource"),
+    Group.SYSTEM_RES_APPLICATION_OVERVIEW.value: _("Overview"),
+    Group.SYSTEM_RES_APPLICATION_ACCESS.value: _("Application Access"),
+    Group.SYSTEM_RES_APPLICATION_CHAT_USER.value: _("Dialogue users"),
+    Group.SYSTEM_RES_APPLICATION_CHAT_LOG.value: _("Conversation log"),
+    # SystemGroup.RESOURCE.value: _("Resource"),
 }
 
 
@@ -374,7 +386,7 @@ class Permission:
     """
 
     def __init__(self, group: Group, operate: Operate, resource_path=None, role_list=None,
-                 resource_permission_group_list=None, parent_group=None, label=None, is_ee=True, is_show=True):
+                 resource_permission_group_list=None, parent_group=None, label=None, is_ee=True):
         if role_list is None:
             role_list = []
         if resource_permission_group_list is None:
@@ -389,7 +401,6 @@ class Permission:
         self.parent_group = parent_group  # 新增字段：父级组
         self.label = label
         self.is_ee = is_ee  # 是否是企业版权限
-        self.is_show = is_show  # 是否在前端展示
 
     @staticmethod
     def new_instance(permission_str: str):
@@ -1164,6 +1175,10 @@ class PermissionConstants(Enum):
         group=Group.SYSTEM_KNOWLEDGE_PROBLEM, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
         parent_group=[SystemGroup.SHARED_KNOWLEDGE]
     )
+    SHARED_KNOWLEDGE_PROBLEM_RELATE = Permission(
+        group=Group.SYSTEM_KNOWLEDGE_PROBLEM, operate=Operate.RELATE, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.SHARED_KNOWLEDGE]
+    )
     SHARED_KNOWLEDGE_HIT_TEST = Permission(
         group=Group.SYSTEM_KNOWLEDGE_HIT_TEST, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
         parent_group=[SystemGroup.SHARED_KNOWLEDGE]
@@ -1195,128 +1210,218 @@ class PermissionConstants(Enum):
     )
     RESOURCE_APPLICATION_READ = Permission(
         group=Group.SYSTEM_RES_APPLICATION, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE]
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
     )
-
+    RESOURCE_APPLICATION_DEBUG = Permission(
+        group=Group.SYSTEM_RES_APPLICATION, operate=Operate.DEBUG, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_EXPORT = Permission(
+        group=Group.SYSTEM_RES_APPLICATION, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_DELETE = Permission(
+        group=Group.SYSTEM_RES_APPLICATION, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_EDIT = Permission(
+        group=Group.SYSTEM_RES_APPLICATION, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_OVERVIEW_READ = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_OVERVIEW, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_OVERVIEW_EMBED = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_OVERVIEW, operate=Operate.EMBED, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_OVERVIEW_ACCESS = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_OVERVIEW, operate=Operate.ACCESS, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_OVERVIEW_DISPLAY = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_OVERVIEW, operate=Operate.DISPLAY, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_OVERVIEW_API_KEY = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_OVERVIEW, operate=Operate.API_KEY, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_OVERVIEW_PUBLIC = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_OVERVIEW, operate=Operate.PUBLIC_ACCESS, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    #应用接入
+    RESOURCE_APPLICATION_ACCESS_READ = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_ACCESS, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_ACCESS_EDIT = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_ACCESS, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_USER_READ = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_USER, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_USER_EDIT = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_USER, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_LOG_READ = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_LOG, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_LOG_ADD_KNOWLEDGE = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_LOG, operate=Operate.ADD_KNOWLEDGE, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_LOG_ANNOTATION = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_LOG, operate=Operate.ANNOTATION, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_LOG_EXPORT = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_LOG, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+    RESOURCE_APPLICATION_CHAT_LOG_CLEAR_POLICY = Permission(
+        group=Group.SYSTEM_RES_APPLICATION_CHAT_LOG, operate=Operate.CLEAR_POLICY, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_APPLICATION]
+    )
+# 知识库
     RESOURCE_KNOWLEDGE_READ = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE]
-    )
-    RESOURCE_KNOWLEDGE_CREATE = Permission(
-        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.CREATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_EDIT = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_KNOWLEDGE_SYNC = Permission(
-        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.SYNC, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_KNOWLEDGE_VECTOR = Permission(
-        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.VECTOR, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_KNOWLEDGE_EXPORT = Permission(
-        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_KNOWLEDGE_GENERATE = Permission(
-        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.GENERATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DELETE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
+    RESOURCE_KNOWLEDGE_SYNC = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.SYNC, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_EXPORT = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_VECTOR = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.VECTOR, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_GENERATE = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE, operate=Operate.GENERATE, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+# 文档
     RESOURCE_KNOWLEDGE_DOCUMENT_READ = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_CREATE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.CREATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_EDIT = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_DELETE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_SYNC = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.SYNC, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_EXPORT = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_DOWNLOAD_SOURCE_FILE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.DOWNLOAD, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_KNOWLEDGE_DOCUMENT_VECTOR = Permission(
-        group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.VECTOR, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_GENERATE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.GENERATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_DOCUMENT_VECTOR = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.VECTOR, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_DOCUMENT_MIGRATE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_DOCUMENT, operate=Operate.MIGRATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_HIT_TEST = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE_HIT_TEST, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_PROBLEM_READ = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_PROBLEM, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_PROBLEM_CREATE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_PROBLEM, operate=Operate.CREATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_PROBLEM_EDIT = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_PROBLEM, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_KNOWLEDGE_PROBLEM_DELETE = Permission(
         group=Group.SYSTEM_RES_KNOWLEDGE_PROBLEM, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_PROBLEM_RELATE = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE_PROBLEM, operate=Operate.RELATE, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_CHAT_USER_READ = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE_CHAT_USER, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
+    )
+    RESOURCE_KNOWLEDGE_CHAT_USER_EDIT = Permission(
+        group=Group.SYSTEM_RES_KNOWLEDGE_CHAT_USER, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_KNOWLEDGE]
     )
     RESOURCE_TOOL_READ = Permission(
         group=Group.SYSTEM_RES_TOOL, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE]
-    )
-    RESOURCE_TOOL_CREATE = Permission(
-        group=Group.SYSTEM_RES_TOOL, operate=Operate.CREATE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_TOOL]
     )
     RESOURCE_TOOL_EDIT = Permission(
         group=Group.SYSTEM_RES_TOOL, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_TOOL]
     )
     RESOURCE_TOOL_DELETE = Permission(
         group=Group.SYSTEM_RES_TOOL, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_TOOL_IMPORT = Permission(
-        group=Group.SYSTEM_RES_TOOL, operate=Operate.IMPORT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
-    )
-    RESOURCE_TOOL_EXPORT = Permission(
-        group=Group.SYSTEM_RES_TOOL, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_TOOL]
     )
     RESOURCE_TOOL_DEBUG = Permission(
         group=Group.SYSTEM_RES_TOOL, operate=Operate.DEBUG, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE], is_show=False
+        parent_group=[SystemGroup.RESOURCE_TOOL]
+    )
+    RESOURCE_TOOL_EXPORT = Permission(
+        group=Group.SYSTEM_RES_TOOL, operate=Operate.EXPORT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_TOOL]
     )
     RESOURCE_MODEL_READ = Permission(
         group=Group.SYSTEM_RES_MODEL, operate=Operate.READ, role_list=[RoleConstants.ADMIN],
-        parent_group=[SystemGroup.RESOURCE]
+        parent_group=[SystemGroup.RESOURCE_MODEL]
+    )
+    RESOURCE_MODEL_EDIT = Permission(
+        group=Group.SYSTEM_RES_MODEL, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_MODEL]
+    )
+    RESOURCE_MODEL_DELETE = Permission(
+        group=Group.SYSTEM_RES_MODEL, operate=Operate.DELETE, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_MODEL]
     )
     OPERATION_LOG_READ = Permission(
         group=Group.OPERATION_LOG, operate=Operate.READ, role_list=[RoleConstants.ADMIN],

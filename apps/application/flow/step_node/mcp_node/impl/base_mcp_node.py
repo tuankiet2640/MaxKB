@@ -4,7 +4,6 @@ import json
 from typing import List
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain_mcp_adapters.sessions import create_session
 
 from application.flow.i_step_node import NodeResult
 from application.flow.step_node.mcp_node.i_mcp_node import IMcpNode
@@ -15,8 +14,6 @@ class BaseMcpNode(IMcpNode):
         self.context['result'] = details.get('result')
         self.context['tool_params'] = details.get('tool_params')
         self.context['mcp_tool'] = details.get('mcp_tool')
-        if self.node_params.get('is_result', False):
-            self.answer_text = details.get('result')
 
     def execute(self, mcp_servers, mcp_server, mcp_tool, tool_params, **kwargs) -> NodeResult:
         servers = json.loads(mcp_servers)
@@ -25,7 +22,7 @@ class BaseMcpNode(IMcpNode):
 
         async def call_tool(t, a):
             client = MultiServerMCPClient(servers)
-            async with create_session(client.connections[mcp_server]) as s:
+            async with client.session(mcp_server) as s:
                 return await s.call_tool(t, a)
 
         res = asyncio.run(call_tool(mcp_tool, params))

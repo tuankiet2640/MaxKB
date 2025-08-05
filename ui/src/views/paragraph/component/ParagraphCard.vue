@@ -14,68 +14,70 @@
         shadow="always"
         style="--el-card-padding: 8px 12px; --el-card-border-radius: 8px"
         @click.stop
+        v-if="MoreFieldPermission(id)"
       >
         <el-switch
           :loading="changeStateloading"
           v-model="data.is_active"
           :before-change="() => changeState(data)"
           size="small"
-          v-if="permissionPrecise.doc_edit(id)" 
+          v-if="permissionPrecise.doc_edit(id)"
         />
 
         <el-divider direction="vertical" />
         <span class="mr-8">
-          <el-button link @click.stop="editParagraph(data)"
-            v-if="permissionPrecise.doc_edit(id)"
-          >
-            <el-icon :size="16" :title="$t('common.edit')">
-              <EditPen />
-            </el-icon>
+          <el-button link @click.stop="editParagraph(data)" v-if="permissionPrecise.doc_edit(id)">
+            <AppIcon iconName="app-edit" :size="16" :title="$t('common.edit')"></AppIcon>
           </el-button>
         </span>
         <span class="mr-8">
-          <el-button link @click.stop="addParagraph(data)"
-            v-if="permissionPrecise.doc_edit(id)"
-          >
+          <el-button link @click.stop="addParagraph(data)" v-if="permissionPrecise.doc_edit(id)">
             <el-icon :size="16" :title="$t('common.add')">
               <el-icon><CirclePlus /></el-icon>
             </el-icon>
           </el-button>
         </span>
-        <el-dropdown trigger="click" :teleported="false">
+        <el-dropdown trigger="click" :teleported="false" v-if="MoreFieldPermission(id)">
           <el-button text>
-            <el-icon><MoreFilled /></el-icon>
+            <AppIcon iconName="app-more"></AppIcon>
           </el-button>
           <template #dropdown>
-            <el-dropdown-menu style="min-width: 140px;">
-              <el-dropdown-item @click.stop="openGenerateDialog(data)"
+            <el-dropdown-menu style="min-width: 140px">
+              <el-dropdown-item
+                @click.stop="openGenerateDialog(data)"
                 v-if="permissionPrecise.doc_generate(id)"
               >
                 <el-icon><Connection /></el-icon>
                 {{ $t('views.document.generateQuestion.title') }}</el-dropdown-item
               >
-              <el-dropdown-item @click.stop="openSelectDocumentDialog(data)"
+              <el-dropdown-item
+                @click.stop="openSelectDocumentDialog(data)"
                 v-if="permissionPrecise.doc_edit(id)"
               >
                 <AppIcon iconName="app-migrate"></AppIcon>
                 {{ $t('views.document.setting.migration') }}</el-dropdown-item
               >
-               <el-dropdown-item v-if="permissionPrecise.doc_edit(id)">
-                <el-dropdown class="w-full" trigger="hover" :show-arrow="false" placement="right-start" popper-class="move-position-popper">
-                  <div class="w-full flex-between" style="line-height: 22px;">
+              <el-dropdown-item v-if="permissionPrecise.doc_edit(id)">
+                <el-dropdown
+                  class="w-full"
+                  trigger="hover"
+                  :show-arrow="false"
+                  placement="right-start"
+                  popper-class="move-position-popper"
+                >
+                  <div class="w-full flex-between" style="line-height: 22px">
                     <div class="flex align-center">
                       <!-- TODO 更换icon -->
                       <AppIcon iconName="app-migrate"></AppIcon>
                       {{ $t('views.document.movePosition.title') }}
                     </div>
-                    <el-icon class="color-input-placeholder" :size="16" style="margin-right: 0;"><ArrowRight /></el-icon>
+                    <el-icon class="color-input-placeholder" :size="16" style="margin-right: 0"
+                      ><ArrowRight
+                    /></el-icon>
                   </div>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item
-                        v-if="props.showMoveUp"
-                        @click.stop="emit('move', 'up')"
-                      >
+                      <el-dropdown-item v-if="props.showMoveUp" @click.stop="emit('move', 'up')">
                         {{ $t('views.document.movePosition.moveUp') }}
                       </el-dropdown-item>
                       <el-dropdown-item
@@ -88,11 +90,13 @@
                   </template>
                 </el-dropdown>
               </el-dropdown-item>
-              <el-dropdown-item icon="Delete" @click.stop="deleteParagraph(data)"
+              <el-dropdown-item
+                @click.stop="deleteParagraph(data)"
                 v-if="permissionPrecise.doc_edit(id)"
-              >{{
-                $t('common.delete')
-              }}</el-dropdown-item>
+              >
+                <AppIcon iconName="app-delete"></AppIcon>
+                {{ $t('common.delete') }}</el-dropdown-item
+              >
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -139,22 +143,33 @@ const props = defineProps<{
   showMoveDown?: boolean
 }>()
 
-
 const route = useRoute()
 const {
   params: { id, documentId },
-  query: { type },
+  query: { from },
 } = route as any
 
 const apiType = computed(() => {
-  return type as 'systemShare' | 'workspace' | 'systemManage'
+  return from as 'systemShare' | 'workspace' | 'systemManage'
 })
 
-const permissionPrecise = computed (() => {
+const permissionPrecise = computed(() => {
   return permissionMap['knowledge'][apiType.value]
 })
 
-const emit = defineEmits(['dialogVisibleChange','clickCard','changeState', 'deleteParagraph', 'refresh', 'refreshMigrateParagraph','move'])
+const MoreFieldPermission = (id: any) => {
+  return permissionPrecise.value.doc_generate(id) || permissionPrecise.value.doc_edit(id)
+}
+
+const emit = defineEmits([
+  'dialogVisibleChange',
+  'clickCard',
+  'changeState',
+  'deleteParagraph',
+  'refresh',
+  'refreshMigrateParagraph',
+  'move',
+])
 const loading = ref(false)
 const changeStateloading = ref(false)
 const show = ref(false)
@@ -222,11 +237,12 @@ function editParagraph(row: any) {
 const cardClick = permissionPrecise.value.doc_edit(id)
 
 function handleClickCard(row: any) {
-  if (!cardClick || dialogVisible.value) 
-  {return }
+  if (!cardClick || dialogVisible.value) {
+    return
+  }
   if (!props.disabled) {
     editParagraph(row)
-  }else {
+  } else {
     emit('clickCard')
   }
 }
@@ -249,8 +265,13 @@ function refreshMigrateParagraph() {
   emit('refreshMigrateParagraph', props.data)
 }
 
-const dialogVisible = computed(()=> ParagraphDialogRef.value?.dialogVisible || SelectDocumentDialogRef.value?.dialogVisible || GenerateRelatedDialogRef.value?.dialogVisible)
-watch(dialogVisible, (val: boolean)=>{
+const dialogVisible = computed(
+  () =>
+    ParagraphDialogRef.value?.dialogVisible ||
+    SelectDocumentDialogRef.value?.dialogVisible ||
+    GenerateRelatedDialogRef.value?.dialogVisible,
+)
+watch(dialogVisible, (val: boolean) => {
   emit('dialogVisibleChange', val)
 })
 </script>

@@ -98,7 +98,7 @@ class ChatInfo:
         if self.chat_user_type == ChatUserType.CHAT_USER.value and chat_user_model:
             chat_user = QuerySet(chat_user_model).filter(id=self.chat_user_id).first()
             return {
-                'id': chat_user.id,
+                'id': str(chat_user.id),
                 'email': chat_user.email,
                 'phone': chat_user.phone,
                 'nick_name': chat_user.nick_name,
@@ -107,7 +107,10 @@ class ChatInfo:
             }
         else:
             if asker:
-                self.chat_user = asker
+                if isinstance(asker, dict):
+                    self.chat_user = asker
+                else:
+                    self.chat_user = {'username': asker}
             else:
                 self.chat_user = {'username': '游客'}
         return self.chat_user
@@ -162,6 +165,34 @@ class ChatInfo:
         return {**params, 'problem_text': problem_text, 'post_response_handler': post_response_handler,
                 'exclude_paragraph_id_list': exclude_paragraph_id_list, 'stream': stream, 'chat_user_id': chat_user_id,
                 'chat_user_type': chat_user_type, 'form_data': form_data}
+
+    def set_chat(self, question):
+        if not self.debug:
+            if not QuerySet(Chat).filter(id=self.chat_id).exists():
+                Chat(id=self.chat_id, application_id=self.application_id, abstract=question[0:1024],
+                     chat_user_id=self.chat_user_id, chat_user_type=self.chat_user_type,
+                     asker=self.get_chat_user()).save()
+
+    def set_chat_variable(self, chat_context):
+        if not self.debug:
+            chat = QuerySet(Chat).filter(id=self.chat_id).first()
+            if chat:
+                chat.meta = {**(chat.meta if isinstance(chat.meta, dict) else {}), **chat_context}
+                chat.save()
+        else:
+            cache.set(Cache_Version.CHAT_VARIABLE.get_key(key=self.chat_id), chat_context,
+                      version=Cache_Version.CHAT_VARIABLE.get_version(),
+                      timeout=60 * 30)
+
+    def get_chat_variable(self):
+        if not self.debug:
+            chat = QuerySet(Chat).filter(id=self.chat_id).first()
+            if chat:
+                return chat.meta
+            return {}
+        else:
+            return cache.get(Cache_Version.CHAT_VARIABLE.get_key(key=self.chat_id),
+                             version=Cache_Version.CHAT_VARIABLE.get_version()) or {}
 
     def append_chat_record(self, chat_record: ChatRecord):
         chat_record.problem_text = chat_record.problem_text[0:10240] if chat_record.problem_text is not None else ""

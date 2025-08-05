@@ -25,11 +25,13 @@ from django.utils.translation import gettext_lazy as _
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from rest_framework import serializers, status
 from rest_framework.utils.formatting import lazy_format
+
 from application.flow.common import Workflow
 from application.models.application import Application, ApplicationTypeChoices, ApplicationKnowledgeMapping, \
     ApplicationFolder, ApplicationVersion
 from application.models.application_access_token import ApplicationAccessToken
 from common import result
+from common.cache_data.application_access_token_cache import del_application_access_token
 from common.database_model_manage.database_model_manage import DatabaseModelManage
 from common.db.search import native_search, native_page_search
 from common.exception.app_exception import AppApiException
@@ -206,7 +208,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
                                                    min_value=0,
                                                    max_value=1024,
                                                    label=_("Historical chat records"))
-        prologue = serializers.CharField(required=False, allow_null=True, allow_blank=True, max_length=102400,
+        prologue = serializers.CharField(required=False, allow_null=True, allow_blank=True, max_length=40960,
                                          label=_("Opening remarks"))
         knowledge_id_list = serializers.ListSerializer(required=False, child=serializers.UUIDField(required=True),
                                                        allow_null=True,
@@ -282,6 +284,9 @@ class ApplicationQueryRequest(serializers.Serializer):
     folder_id = serializers.CharField(required=False, label=_("folder id"))
     name = serializers.CharField(required=False, label=_('Application Name'))
     desc = serializers.CharField(required=False, label=_("Application Description"))
+    publish_status = serializers.ChoiceField(required=False, label=_("Publish status"),
+                                             choices=[('published', _("Published")),
+                                                      ('unpublished', _("Unpublished"))])
     user_id = serializers.UUIDField(required=False, label=_("User ID"))
 
 
@@ -309,7 +314,11 @@ class Query(serializers.Serializer):
         user_id = self.data.get('user_id')
         desc = instance.get('desc')
         name = instance.get('name')
+        publish_status = instance.get("publish_status")
         create_user = instance.get('create_user')
+        if publish_status is not None:
+            is_publish = True if publish_status == "published" else False
+            application_query_set = application_query_set.filter(is_publish=is_publish)
         if workspace_id is not None:
             folder_query_set = folder_query_set.filter(workspace_id=workspace_id)
             application_query_set = application_query_set.filter(workspace_id=workspace_id)
@@ -631,9 +640,10 @@ class ApplicationOperateSerializer(serializers.Serializer):
         if with_valid:
             self.is_valid(raise_exception=True)
             McpServersSerializer(data=instance).is_valid(raise_exception=True)
-            if '"stdio"' in instance.get('mcp_servers'):
-                raise AppApiException(500, _('stdio is not supported'))
         servers = json.loads(instance.get('mcp_servers'))
+        for server, config in servers.items():
+            if config.get('transport') not in ['sse', 'streamable_http']:
+                raise AppApiException(500, _('Only support transport=sse or transport=streamable_http'))
         tools = []
         for server in servers:
             tools += [
@@ -733,6 +743,18 @@ class ApplicationOperateSerializer(serializers.Serializer):
                                                workspace_id=workspace_id)
         self.reset_application_version(work_flow_version, application)
         work_flow_version.save()
+        access_token = hashlib.md5(
+            str(uuid.uuid7()).encode()).hexdigest()[
+                       8:24]
+        application_access_token = QuerySet(ApplicationAccessToken).filter(
+            application_id=application.id).first()
+        if application_access_token is None:
+            application_access_token = ApplicationAccessToken(application_id=application.id,
+                                                              access_token=access_token, is_active=True)
+            application_access_token.save()
+        else:
+            access_token = application_access_token.access_token
+        del_application_access_token(access_token)
         return self.one(with_valid=False)
 
     @staticmethod

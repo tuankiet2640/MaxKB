@@ -4,6 +4,9 @@ export default {
   createSuccess: '創建成功',
   copy: '複製',
   copySuccess: '複製成功',
+  publishStatus: '發佈狀態',
+  published: '已發佈',
+  unpublished: '未發佈',
   copyError: '複製失敗',
   save: '儲存',
   saveSuccess: '儲存成功',
@@ -103,4 +106,5 @@ export default {
   collapse: '收起',
   copyTitle: '副本',
   professional: '購買專業版',
+  sync: '同步',
 }

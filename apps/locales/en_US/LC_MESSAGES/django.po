@@ -8362,6 +8362,21 @@ msgstr "CAS"
 msgid "LDAP"
 msgstr "LDAP"
 
+msgid "OIDC"
+msgstr "OIDC"
+
+msgid "OAuth2"
+msgstr "OAuth2"
+
+msgid "dingtalk"
+msgstr "DingTalk"
+
+msgid "wecom"
+msgstr "WeCom"
+
+msgid "lark"
+msgstr "Lark"
+
 msgid "Get tool list"
 msgstr ""
 
@@ -8508,3 +8523,39 @@ msgstr ""
 
 msgid "Resource"
 msgstr "Resource Management"
+
+msgid "LDAP configuration not found or not active"
+msgstr ""
+
+msgid "Lark configuration not found or not active"
+msgstr ""
+
+msgid "Failed to get Lark collaborators"
+msgstr ""
+
+msgid "Failed to get Lark user details"
+msgstr ""
+
+msgid "WeCom configuration not found or not active"
+msgstr ""
+
+msgid "Failed to get WeCom access token"
+msgstr ""
+
+msgid "Failed to get WeCom agent info"
+msgstr ""
+
+msgid "Failed to get WeCom department users"
+msgstr ""
+
+msgid "Failed to get WeCom user info"
+msgstr ""
+
+msgid "Publish status"
+msgstr ""
+
+msgid "Unpublished"
+msgstr ""
+
+msgid "Published"
+msgstr ""

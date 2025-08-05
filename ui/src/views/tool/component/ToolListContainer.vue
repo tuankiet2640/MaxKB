@@ -65,7 +65,7 @@
                 :on-change="(file: any, fileList: any) => importTool(file)"
                 class="import-button"
               >
-                <el-dropdown-item>
+                <el-dropdown-item v-if="permissionPrecise.import()">
                   <div class="flex align-center w-full">
                     <el-avatar shape="square" class="mt-4" :size="36" style="background: none">
                       <img src="@/assets/icon_import.svg" alt="" />
@@ -195,7 +195,7 @@
                   </div>
                 </template>
                 <template #mouseEnter>
-                  <div @click.stop v-if="!isShared">
+                  <div @click.stop v-if="!isShared && MoreFieldPermission(item.id)">
                     <el-switch
                       v-model="item.is_active"
                       :before-change="() => changeState(item)"
@@ -206,9 +206,7 @@
                     <el-divider direction="vertical" />
                     <el-dropdown trigger="click">
                       <el-button text @click.stop>
-                        <el-icon>
-                          <MoreFilled />
-                        </el-icon>
+                        <AppIcon iconName="app-more"></AppIcon>
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
@@ -216,18 +214,14 @@
                             v-if="item.template_id && permissionPrecise.edit(item.id)"
                             @click.stop="addInternalTool(item, true)"
                           >
-                            <el-icon>
-                              <EditPen />
-                            </el-icon>
+                            <AppIcon iconName="app-edit"></AppIcon>
                             {{ $t('common.edit') }}
                           </el-dropdown-item>
                           <el-dropdown-item
                             v-if="!item.template_id && permissionPrecise.edit(item.id)"
                             @click.stop="openCreateDialog(item)"
                           >
-                            <el-icon>
-                              <EditPen />
-                            </el-icon>
+                            <AppIcon iconName="app-edit"></AppIcon>
                             {{ $t('common.edit') }}
                           </el-dropdown-item>
                           <el-dropdown-item
@@ -255,9 +249,10 @@
                           </el-dropdown-item>
                           <el-dropdown-item
                             v-if="isSystemShare"
-                            icon="Lock"
                             @click.stop="openAuthorizedWorkspaceDialog(item)"
-                            >{{ $t('views.shared.authorized_workspace') }}</el-dropdown-item
+                          >
+                            <AppIcon iconName="app-key"></AppIcon>
+                            {{ $t('views.shared.authorized_workspace') }}</el-dropdown-item
                           >
                           <el-dropdown-item
                             v-if="!item.template_id && permissionPrecise.export(item.id)"
@@ -271,7 +266,7 @@
                             divided
                             @click.stop="deleteTool(item)"
                           >
-                            <el-icon><Delete /></el-icon>
+                            <AppIcon iconName="app-delete"></AppIcon>
                             {{ $t('common.delete') }}
                           </el-dropdown-item>
                         </el-dropdown-menu>
@@ -306,18 +301,18 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, reactive, computed, watch } from 'vue'
-import { cloneDeep, get } from 'lodash'
+import { cloneDeep } from 'lodash'
 import { useRoute, onBeforeRouteLeave } from 'vue-router'
 import InitParamDrawer from '@/views/tool/component/InitParamDrawer.vue'
 import ToolFormDrawer from '@/views/tool/ToolFormDrawer.vue'
 import CreateFolderDialog from '@/components/folder-tree/CreateFolderDialog.vue'
 import AuthorizedWorkspace from '@/views/system-shared/AuthorizedWorkspaceDialog.vue'
-import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
-import { isAppIcon, resetUrl } from '@/utils/common'
-import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
-import { SourceTypeEnum } from '@/enums/common'
 import ToolStoreDialog from '@/views/tool/toolStore/ToolStoreDialog.vue'
 import AddInternalToolDialog from '@/views/tool/toolStore/AddInternalToolDialog.vue'
+import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
+import { resetUrl } from '@/utils/common'
+import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
+import { SourceTypeEnum } from '@/enums/common'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import permissionMap from '@/permission'
 import useStore from '@/stores'
@@ -349,6 +344,15 @@ const isSystemShare = computed(() => {
 const permissionPrecise = computed(() => {
   return permissionMap['tool'][apiType.value]
 })
+
+const MoreFieldPermission = (id: any) => {
+  return (
+    permissionPrecise.value.edit(id) ||
+    permissionPrecise.value.export(id) ||
+    permissionPrecise.value.delete(id) ||
+    isSystemShare.value
+  )
+}
 
 const InitParamDrawerRef = ref()
 const search_type = ref('name')

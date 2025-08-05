@@ -5,15 +5,12 @@
         <back-button @click="back"></back-button>
         <h4 class="ellipsis" style="max-width: 300px" :title="detail?.name">{{ detail?.name }}</h4>
         <div v-if="showHistory && disablePublic">
-          <el-text type="info" class="ml-16 color-secondary"
-            >{{ $t('views.applicationWorkflow.info.previewVersion') }}
-            {{ currentVersion.name || datetimeFormat(currentVersion.update_time) }}</el-text
-          >
+          <el-text type="info" class="ml-16 color-secondary">{{ $t('views.applicationWorkflow.info.previewVersion') }}
+            {{ currentVersion.name || datetimeFormat(currentVersion.update_time) }}</el-text>
         </div>
-        <el-text type="info" class="ml-16 color-secondary" v-else-if="saveTime"
-          >{{ $t('views.applicationWorkflow.info.saveTime')
-          }}{{ datetimeFormat(saveTime) }}</el-text
-        >
+        <el-text type="info" class="ml-16 color-secondary" v-else-if="saveTime">{{
+          $t('views.applicationWorkflow.info.saveTime')
+          }}{{ datetimeFormat(saveTime) }}</el-text>
       </div>
       <div v-if="showHistory && disablePublic">
         <el-button type="primary" class="mr-8" @click="refreshVersion()">
@@ -21,7 +18,9 @@
         </el-button>
         <el-divider direction="vertical" />
         <el-button text @click="closeHistory">
-          <el-icon><Close /></el-icon>
+          <el-icon>
+            <Close />
+          </el-icon>
         </el-button>
       </div>
       <div v-else>
@@ -30,8 +29,8 @@
         </el-button>
         <el-button @click="clickShowDebug" :disabled="showDebug">
           <AppIcon iconName="app-debug-outlined" class="mr-4"></AppIcon>
-          {{ $t('views.applicationWorkflow.setting.debug') }}</el-button
-        >
+          {{ $t('views.applicationWorkflow.setting.debug') }}
+        </el-button>
         <el-button @click="saveApplication(true)">
           <AppIcon iconName="app-save-outlined" class="mr-4"></AppIcon>
           {{ $t('common.save') }}
@@ -42,7 +41,7 @@
 
         <el-dropdown trigger="click">
           <el-button text @click.stop class="ml-8 mt-4">
-            <el-icon class="rotate-90"><MoreFilled /></el-icon>
+            <AppIcon iconName="app-more" class="rotate-90"></AppIcon>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
@@ -71,14 +70,8 @@
     </div>
     <!-- 下拉框 -->
     <el-collapse-transition>
-      <DropdownMenu
-        :show="showPopover"
-        :id="id"
-        v-click-outside="clickoutside"
-        @clickNodes="clickNodes"
-        @onmousedown="onmousedown"
-        :workflowRef="workflowRef"
-      />
+      <DropdownMenu :show="showPopover" :id="id" v-click-outside="clickoutside" @clickNodes="clickNodes"
+        @onmousedown="onmousedown" :workflowRef="workflowRef" />
     </el-collapse-transition>
     <!-- 主画布 -->
     <div class="workflow-main" ref="workflowMainRef">
@@ -91,12 +84,7 @@
           <div class="flex-between">
             <div class="flex align-center">
               <div class="mr-12 ml-24 flex">
-                <el-avatar
-                  v-if="isAppIcon(detail?.icon)"
-                  shape="square"
-                  :size="32"
-                  style="background: none"
-                >
+                <el-avatar v-if="isAppIcon(detail?.icon)" shape="square" :size="32" style="background: none">
                   <img :src="resetUrl(detail?.icon)" alt="" />
                 </el-avatar>
                 <LogoIcon v-else height="32px" />
@@ -108,14 +96,14 @@
             </div>
             <div class="mr-16">
               <el-button link @click="enlarge = !enlarge">
-                <AppIcon
-                  :iconName="enlarge ? 'app-minify' : 'app-magnify'"
-                  class="color-secondary"
-                  style="font-size: 20px"
-                ></AppIcon>
+                <AppIcon :iconName="enlarge ? 'app-minify' : 'app-magnify'" class="color-secondary"
+                  style="font-size: 20px">
+                </AppIcon>
               </el-button>
               <el-button link @click="showDebug = false">
-                <el-icon :size="20" class="color-secondary"><Close /></el-icon>
+                <el-icon :size="20" class="color-secondary">
+                  <Close />
+                </el-icon>
               </el-button>
             </div>
           </div>
@@ -126,22 +114,17 @@
       </div>
     </el-collapse-transition>
     <!-- 发布历史 -->
-    <PublishHistory
-      v-if="showHistory"
-      @click="checkVersion"
-      v-click-outside="clickoutsideHistory"
-      @refreshVersion="refreshVersion"
-    />
+    <PublishHistory v-if="showHistory" @click="checkVersion" v-click-outside="clickoutsideHistory"
+      @refreshVersion="refreshVersion" />
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { Action } from 'element-plus'
 import Workflow from '@/workflow/index.vue'
 import DropdownMenu from '@/views/application-workflow/component/DropdownMenu.vue'
 import PublishHistory from '@/views/application-workflow/component/PublishHistory.vue'
-import ApplicationAPI from '@/api/application/application'
 import { isAppIcon, resetUrl } from '@/utils/common'
 import { MsgSuccess, MsgError, MsgConfirm } from '@/utils/message'
 import { datetimeFormat } from '@/utils/time'
@@ -152,17 +135,25 @@ import { hasPermission } from '@/utils/permission'
 import { t } from '@/locales'
 import { ComplexPermission } from '@/utils/permission/type'
 import { EditionConst, PermissionConst, RoleConst } from '@/utils/permission/data'
-
-const { theme, application } = useStore()
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+provide('getApplicationDetail', () => detail)
+const { theme } = useStore()
 const router = useRouter()
 const route = useRoute()
+const {
+  params: { id, from },
+} = route as any
+const apiType = computed(() => {
+  if (route.path.includes('resource-management')) {
+    return 'systemManage'
+  } else {
+    return 'workspace'
+  }
+})
 
 const isDefaultTheme = computed(() => {
   return theme.isDefaultTheme()
 })
-const {
-  params: { id },
-} = route as any
 
 let interval: any
 const workflowRef = ref()
@@ -285,9 +276,14 @@ const publish = () => {
         MsgError(e.toString())
         return
       }
-      ApplicationAPI.putApplication(id, { work_flow: workflow }, loading)
-        .then((ok) => {
-          return ApplicationAPI.publish(id, {}, loading)
+      loadSharedApi({ type: 'application', systemType: apiType.value })
+        .putApplication(id, { work_flow: workflow }, loading)
+        .then(() => {
+          return loadSharedApi({ type: 'application', systemType: apiType.value }).publish(
+            id,
+            {},
+            loading,
+          )
         })
         .then((ok: any) => {
           detail.value.name = ok.data.name
@@ -299,15 +295,15 @@ const publish = () => {
           if (typeof err_message == 'string') {
             MsgError(
               res.node.properties?.stepName +
-                ` ${t('views.applicationWorkflow.node').toLowerCase()} ` +
-                err_message.toLowerCase(),
+              ` ${t('views.applicationWorkflow.node').toLowerCase()} ` +
+              err_message.toLowerCase(),
             )
           } else {
             const keys = Object.keys(err_message)
             MsgError(
               node.properties?.stepName +
-                ` ${t('views.applicationWorkflow.node').toLowerCase()} ` +
-                err_message[keys[0]]?.[0]?.message.toLowerCase(),
+              ` ${t('views.applicationWorkflow.node').toLowerCase()} ` +
+              err_message[keys[0]]?.[0]?.message.toLowerCase(),
             )
           }
         })
@@ -323,8 +319,8 @@ const publish = () => {
         const keys = Object.keys(err_message)
         MsgError(
           node.properties?.stepName +
-            ` ${t('views.applicationWorkflow.node')}，` +
-            err_message[keys[0]]?.[0]?.message,
+          ` ${t('views.applicationWorkflow.node')}，` +
+          err_message[keys[0]]?.[0]?.message,
         )
       }
     })
@@ -361,8 +357,8 @@ const clickShowDebug = () => {
         const keys = Object.keys(err_message)
         MsgError(
           node.properties?.stepName +
-            ` ${t('views.applicationWorkflow.node')}，` +
-            err_message[keys[0]]?.[0]?.message,
+          ` ${t('views.applicationWorkflow.node')}，` +
+          err_message[keys[0]]?.[0]?.message,
         )
       }
     })
@@ -372,27 +368,29 @@ function getGraphData() {
 }
 
 function getDetail() {
-  application.asyncGetApplicationDetail(id).then((res: any) => {
-    res.data?.work_flow['nodes'].map((v: any) => {
-      v['properties']['noRender'] = true
-    })
-    detail.value = res.data
-    detail.value.stt_model_id = res.data.stt_model
-    detail.value.tts_model_id = res.data.tts_model
-    detail.value.tts_type = res.data.tts_type
-    saveTime.value = res.data?.update_time
-    detail.value.work_flow?.nodes
-      ?.filter((v: any) => v.id === 'base-node')
-      .map((v: any) => {
-        apiInputParams.value = v.properties.api_input_field_list
-          ? v.properties.api_input_field_list.map((v: any) => {
+  loadSharedApi({ type: 'application', systemType: apiType.value })
+    .getApplicationDetail(id)
+    .then((res: any) => {
+      res.data?.work_flow['nodes'].map((v: any) => {
+        v['properties']['noRender'] = true
+      })
+      detail.value = res.data
+      detail.value.stt_model_id = res.data.stt_model
+      detail.value.tts_model_id = res.data.tts_model
+      detail.value.tts_type = res.data.tts_type
+      saveTime.value = res.data?.update_time
+      detail.value.work_flow?.nodes
+        ?.filter((v: any) => v.id === 'base-node')
+        .map((v: any) => {
+          apiInputParams.value = v.properties.api_input_field_list
+            ? v.properties.api_input_field_list.map((v: any) => {
               return {
                 name: v.variable,
                 value: v.default_value,
               }
             })
-          : v.properties.input_field_list
-            ? v.properties.input_field_list
+            : v.properties.input_field_list
+              ? v.properties.input_field_list
                 .filter((v: any) => v.assignment_method === 'api_input')
                 .map((v: any) => {
                   return {
@@ -400,23 +398,27 @@ function getDetail() {
                     value: v.default_value,
                   }
                 })
-            : []
+              : []
+        })
+      loadSharedApi({ type: 'application', systemType: apiType.value })
+        .getAccessToken(id, loading)
+        .then((res: any) => {
+          detail.value = { ...detail.value, ...res.data }
+        })
+      workflowRef.value?.clearGraphData()
+      nextTick(() => {
+        workflowRef.value?.render(detail.value.work_flow)
+        cloneWorkFlow.value = getGraphData()
       })
-    application.asyncGetAccessToken(id, loading).then((res: any) => {
-      detail.value = { ...detail.value, ...res.data }
+      // 企业版和专业版
+      if (hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')) {
+        loadSharedApi({ type: 'application', systemType: apiType.value })
+          .getApplicationSetting(id)
+          .then((ok: any) => {
+            detail.value = { ...detail.value, ...ok.data }
+          })
+      }
     })
-    workflowRef.value?.clearGraphData()
-    nextTick(() => {
-      workflowRef.value?.render(detail.value.work_flow)
-      cloneWorkFlow.value = getGraphData()
-    })
-    // 企业版和专业版
-    if (hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')) {
-      ApplicationAPI.getApplicationSetting(id).then((ok) => {
-        detail.value = { ...detail.value, ...ok.data }
-      })
-    }
-  })
 }
 
 function saveApplication(bool?: boolean, back?: boolean) {
@@ -424,9 +426,9 @@ function saveApplication(bool?: boolean, back?: boolean) {
     work_flow: getGraphData(),
   }
   loading.value = back || false
-  application
-    .asyncPutApplication(id, obj)
-    .then((res) => {
+  loadSharedApi({ type: 'application', systemType: apiType.value })
+    .putApplication(id, obj)
+    .then(() => {
       saveTime.value = new Date()
       if (bool) {
         cloneWorkFlow.value = getGraphData()
@@ -441,7 +443,20 @@ function saveApplication(bool?: boolean, back?: boolean) {
     })
 }
 const go = () => {
-  return router.push({ path: get_route() })
+  if (route.path.includes('workspace')) { return router.push({ path: get_route() }) }
+  else { return router.push({ path: get_resource_management_route() }) }
+};
+
+const get_resource_management_route = () => {
+  if (hasPermission([RoleConst.ADMIN, PermissionConst.RESOURCE_APPLICATION_OVERVIEW_READ], 'OR')) { return `/application/${from}/${id}/WORK_FLOW/overview` } else if
+    (hasPermission([RoleConst.ADMIN, PermissionConst.RESOURCE_APPLICATION_ACCESS_READ], 'OR')) {
+    return `/application/${from}/${id}/WORK_FLOW/access`
+  } else if (hasPermission([RoleConst.ADMIN, PermissionConst.RESOURCE_APPLICATION_CHAT_USER_READ], 'OR')) {
+    return `/application/${from}/${id}/WORK_FLOW/chat-user`
+  } else if (hasPermission([RoleConst.ADMIN, PermissionConst.RESOURCE_APPLICATION_CHAT_LOG_READ], 'OR')) {
+    return `/application/${from}/${id}/WORK_FLOW/chat-log`
+  } else { return `/system/resource-management/application` }
+
 }
 
 const get_route = () => {
@@ -461,7 +476,7 @@ const get_route = () => {
       'OR',
     )
   ) {
-    return `/application/${id}/WORK_FLOW/overview`
+    return `/application/${from}/${id}/WORK_FLOW/overview`
   } else if (
     hasPermission(
       [
@@ -487,7 +502,7 @@ const get_route = () => {
       'OR',
     )
   ) {
-    return `/application/${id}/WORK_FLOW/access`
+    return `/application/${from}/${id}/WORK_FLOW/access`
   } else if (
     hasPermission(
       [
@@ -517,7 +532,7 @@ const get_route = () => {
       'OR',
     )
   ) {
-    return `/application/${id}/WORK_FLOW/chat-user`
+    return `/application/${from}/${id}/WORK_FLOW/chat-user`
   } else if (
     hasPermission(
       [
@@ -533,7 +548,7 @@ const get_route = () => {
       'OR',
     )
   ) {
-    return `/application/${id}/WORK_FLOW/chat-log`
+    return `/application/${from}/${id}/WORK_FLOW/chat-log`
   } else return `/application`
 }
 
@@ -575,6 +590,7 @@ onBeforeUnmount(() => {
 .application-workflow {
   background: var(--app-layout-bg-color);
   height: 100%;
+
   .workflow-main {
     height: calc(100vh - 62px);
     box-sizing: border-box;
@@ -600,6 +616,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   width: 460px;
   height: 680px;
+
   .workflow-debug-header {
     background: var(--app-header-bg-color);
     height: var(--app-header-height);
@@ -607,25 +624,28 @@ onBeforeUnmount(() => {
     box-sizing: border-box;
     border-bottom: 1px solid var(--el-border-color);
   }
+
   .scrollbar-height {
     height: calc(100% - var(--app-header-height) - 24px);
     padding-top: 24px;
   }
+
   &.enlarge {
     width: 50% !important;
     height: 100% !important;
     bottom: 0 !important;
     right: 0 !important;
   }
+
   .chat-width {
     max-width: 100% !important;
     margin: 0 auto;
   }
 }
+
 @media only screen and (max-height: 680px) {
   .workflow-debug-container {
     height: 600px;
   }
 }
-
 </style>

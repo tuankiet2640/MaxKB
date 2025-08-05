@@ -30,8 +30,11 @@
                       :content="$t('views.problem.setting.cancelRelated')"
                       placement="top"
                     >
-                      <el-button type="primary" text @click.stop="disassociation(item)"
-                        v-if="permissionPrecise.doc_edit(id as string)"
+                      <el-button
+                        type="primary"
+                        text
+                        @click.stop="disassociation(item)"
+                        v-if="permissionPrecise.problem_relate(id as string)"
                       >
                         <AppIcon iconName="app-quxiaoguanlian"></AppIcon>
                       </el-button>
@@ -67,9 +70,7 @@
     </div>
     <template #footer>
       <div>
-        <el-button @click="relateProblem"
-          v-if="permissionPrecise.doc_edit(id as string)"
-        >{{
+        <el-button @click="relateProblem" v-if="permissionPrecise.doc_edit(id as string)">{{
           $t('views.problem.relateParagraph.title')
         }}</el-button>
         <el-button @click="pre" :disabled="pre_disable || loading">{{

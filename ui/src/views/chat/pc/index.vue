@@ -74,9 +74,7 @@
                     style="padding-top: 8px; padding-bottom: 8px"
                     @click="openResetPassword"
                   >
-                    <el-icon>
-                      <Lock />
-                    </el-icon>
+                    <AppIcon iconName="app-key" class="mr-4"></AppIcon>
                     {{ $t('views.login.resetPassword') }}
                   </el-dropdown-item>
                   <el-dropdown-item
@@ -106,9 +104,12 @@
       </div>
       <div
         class="chat-pc__right chat-background"
-        :style="{ backgroundImage: `url(${applicationDetail?.chat_background})` }"
+        :style="{
+          backgroundImage: `url(${applicationDetail?.chat_background})`,
+          '--execution-detail-panel-width': rightPanelSize + 'px',
+        }"
       >
-        <div style="flex: 1">
+        <div style="flex: 1; width: calc(100% - var(--execution-detail-panel-width))">
           <div class="p-16-24 flex-between">
             <h4 class="ellipsis-1" style="width: 66%">
               {{ currentChatName }}
@@ -162,12 +163,7 @@
             </AiChat>
           </div>
         </div>
-        <div
-          class="execution-detail-panel"
-          :style="`width: ${rightPanelSize}px`"
-          :resizable="false"
-          collapsible
-        >
+        <div class="execution-detail-panel" :resizable="false" collapsible>
           <div class="p-16 flex-between border-b">
             <h4 class="medium ellipsis" :title="rightPanelTitle">{{ rightPanelTitle }}</h4>
             　
@@ -509,7 +505,6 @@ async function openExecutionDetail(row: any) {
 async function openKnowledgeSource(row: any) {
   rightPanelTitle.value = t('chat.KnowledgeSource.title')
   rightPanelType.value = 'knowledgeSource'
-  // TODO 数据
   rightPanelDetail.value = row
   rightPanelSize.value = 400
 }
@@ -580,7 +575,13 @@ function closeExecutionDetail() {
   max-width: 80%;
   margin: 0 auto;
 }
-
+.chat-pc__right {
+  width: calc(100vw - 280px);
+  --execution-detail-panel-width: 400px;
+  .execution-detail-panel {
+    width: var(--execution-detail-panel-width, 400px);
+  }
+}
 @media only screen and (max-width: 1000px) {
   .chat-width {
     max-width: 100% !important;

@@ -219,6 +219,70 @@
             {{ datetimeFormat(row.create_time) }}
           </template>
         </el-table-column>
+        <el-table-column :label="$t('common.operation')" align="left" width="120" fixed="right">
+          <template #default="{ row }">
+            <el-tooltip
+              effect="dark"
+              :content="$t('views.application.operation.toChat')"
+              placement="top"
+            >
+              <span class="mr-8">
+                <el-button
+                  type="primary"
+                  text
+                  :title="$t('views.application.operation.toChat')"
+                  @click.stop="toChat(row)"
+                >
+                  <AppIcon iconName="app-create-chat"></AppIcon>
+                </el-button>
+              </span>
+            </el-tooltip>
+            <el-tooltip
+              effect="dark"
+              :content="$t('views.system.resource_management.management')"
+              placement="top"
+              v-if="managePermission()"
+            >
+              <span class="mr-8">
+                <el-button
+                  type="primary"
+                  text
+                  :title="$t('views.system.resource_management.management')"
+                  @click="
+                    router.push({
+                      path: `/application/resource-management/${row.id}/${row.type}/overview`,
+                    })
+                  "
+                >
+                  <AppIcon iconName="app-admin-operation"></AppIcon>
+                </el-button>
+              </span>
+            </el-tooltip>
+            <el-dropdown trigger="click" v-if="MoreFilledPermission()">
+              <el-button text @click.stop>
+                <AppIcon iconName="app-more"></AppIcon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    @click.stop="exportApplication(row)"
+                    v-if="permissionPrecise.export()"
+                  >
+                    <AppIcon iconName="app-export"></AppIcon>
+                    {{ $t('common.export') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    @click.stop="deleteApplication(row)"
+                    v-if="permissionPrecise.delete()"
+                  >
+                    <AppIcon iconName="app-delete"></AppIcon>
+                    {{ $t('common.delete') }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </el-table-column>
       </app-table>
     </el-card>
   </div>
@@ -226,6 +290,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, reactive, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import ApplicationResourceApi from '@/api/system-resource-management/application'
 import { t } from '@/locales'
 import { isAppIcon, resetUrl } from '@/utils/common'
@@ -234,8 +299,102 @@ import { datetimeFormat } from '@/utils/time'
 import { loadPermissionApi } from '@/utils/dynamics-api/permission-api.ts'
 import { isWorkFlow } from '@/utils/application.ts'
 import UserApi from '@/api/user/user.ts'
+import permissionMap from '@/permission'
+import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 
-const { user } = useStore()
+const router = useRouter()
+const route = useRoute()
+const { user, application } = useStore()
+
+const permissionPrecise = computed(() => {
+  return permissionMap['application']['systemManage']
+})
+
+const managePermission = () => {
+  return (
+    permissionPrecise.value.overview_read() ||
+    permissionPrecise.value.access_read() ||
+    permissionPrecise.value.edit() ||
+    permissionPrecise.value.chat_log_read() ||
+    permissionPrecise.value.chat_user_read()
+  )
+}
+
+const MoreFilledPermission = () => {
+  return permissionPrecise.value.export() || permissionPrecise.value.delete()
+}
+
+const apiInputParams = ref([])
+function toChat(row: any) {
+  row?.work_flow?.nodes
+    ?.filter((v: any) => v.id === 'base-node')
+    .map((v: any) => {
+      apiInputParams.value = v.properties.api_input_field_list
+        ? v.properties.api_input_field_list.map((v: any) => {
+            return {
+              name: v.variable,
+              value: v.default_value,
+            }
+          })
+        : v.properties.input_field_list
+          ? v.properties.input_field_list
+              .filter((v: any) => v.assignment_method === 'api_input')
+              .map((v: any) => {
+                return {
+                  name: v.variable,
+                  value: v.default_value,
+                }
+              })
+          : []
+    })
+  const apiParams = mapToUrlParams(apiInputParams.value)
+    ? '?' + mapToUrlParams(apiInputParams.value)
+    : ''
+  ApplicationResourceApi.getAccessToken(row.id, loading).then((res: any) => {
+    window.open(application.location + res?.data?.access_token + apiParams)
+  })
+}
+
+function mapToUrlParams(map: any[]) {
+  const params = new URLSearchParams()
+
+  map.forEach((item: any) => {
+    params.append(encodeURIComponent(item.name), encodeURIComponent(item.value))
+  })
+
+  return params.toString() // 返回 URL 查询字符串
+}
+
+function deleteApplication(row: any) {
+  MsgConfirm(
+    // @ts-ignore
+    `${t('views.application.delete.confirmTitle')}${row.name} ?`,
+    t('views.application.delete.confirmMessage'),
+    {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      confirmButtonClass: 'danger',
+    },
+  )
+    .then(() => {
+      ApplicationResourceApi.delApplication(row.id, loading).then(() => {
+        const index = applicationList.value.findIndex((v) => v.id === row.id)
+        applicationList.value.splice(index, 1)
+        MsgSuccess(t('common.deleteSuccess'))
+      })
+    })
+    .catch(() => {})
+}
+
+const exportApplication = (application: any) => {
+  ApplicationResourceApi.exportApplication(application.id, application.name, loading).catch((e) => {
+    if (e.response.status !== 403) {
+      e.response.data.text().then((res: string) => {
+        MsgError(`${t('views.application.tip.ExportError')}:${JSON.parse(res).message}`)
+      })
+    }
+  })
+}
 
 const search_type = ref('name')
 const search_form = ref<any>({
@@ -245,13 +404,13 @@ const search_form = ref<any>({
 const user_options = ref<any[]>([])
 
 const loading = ref(false)
-const changeStateloading = ref(false)
 const applicationList = ref<any[]>([])
 const paginationConfig = reactive({
   current_page: 1,
   page_size: 20,
   total: 0,
 })
+
 const workspaceOptions = ref<any[]>([])
 const workspaceVisible = ref(false)
 const workspaceArr = ref<any[]>([])

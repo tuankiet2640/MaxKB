@@ -54,15 +54,13 @@
           <span class="mr-4">
             <el-tooltip effect="dark" :content="$t('common.modify')" placement="top">
               <el-button type="primary" text @click.stop="openAddDrawer(row, $index)">
-                <el-icon><EditPen /></el-icon>
+                <AppIcon iconName="app-edit"></AppIcon>
               </el-button>
             </el-tooltip>
           </span>
           <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
             <el-button type="primary" text @click="deleteParam($index)">
-              <el-icon>
-                <Delete />
-              </el-icon>
+              <AppIcon iconName="app-delete"></AppIcon>
             </el-button>
           </el-tooltip>
         </template>
@@ -89,9 +87,6 @@ import { MsgError, MsgSuccess } from '@/utils/message'
 import { input_type_list } from '@/components/dynamics-form/constructor/data'
 import { t } from '@/locales'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-const props = defineProps<{
-  model: Model
-}>()
 
 const route = useRoute()
 
@@ -108,12 +103,14 @@ const loading = ref<boolean>(false)
 const dialogVisible = ref<boolean>(false)
 const modelParamsForm = ref<any[]>([])
 const AddParamRef = ref()
+const currentModel = ref<Model | null>(null)
 
-const open = () => {
+const open = (model: Model) => {
+  currentModel.value = model
   dialogVisible.value = true
   loading.value = true
   loadSharedApi({ type: 'model', systemType: apiType.value })
-    .getModelParamsForm(props.model.id, loading)
+    .getModelParamsForm(model.id, loading)
     .then((ok: any) => {
       loading.value = false
       modelParamsForm.value = ok.data
@@ -164,8 +161,11 @@ function refresh(data: any, index: any) {
 }
 
 function submit() {
+  if (!currentModel.value) {
+    return
+  }
   loadSharedApi({ type: 'model', systemType: apiType.value })
-    .updateModelParamsForm(props.model.id, modelParamsForm.value, loading)
+    .updateModelParamsForm(currentModel.value.id, modelParamsForm.value, loading)
     .then((ok: any) => {
       MsgSuccess(t('views.model.tip.saveSuccessMessage'))
       close()

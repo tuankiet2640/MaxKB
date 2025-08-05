@@ -63,7 +63,7 @@
                   style="padding-top: 8px; padding-bottom: 8px"
                   @click="openResetPassword"
                 >
-                  <el-icon><Lock /></el-icon>
+                  <AppIcon iconName="app-key"></AppIcon>
                   {{ $t('views.login.resetPassword') }}
                 </el-dropdown-item>
                 <el-dropdown-item
@@ -111,7 +111,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['newChat', 'clickLog', 'deleteLog', 'refreshFieldTitle', 'clearChat'])
 
-const { chatUser, chatLog } = useStore()
+const { chatUser } = useStore()
 
 const clearChat = () => {
   emit('clearChat')

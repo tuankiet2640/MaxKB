@@ -13,33 +13,152 @@ const systemManage = {
       'OR',
     ),
   create: () => false,
-  sync: () => false,
-  vector: () => false,
-  generate: () => false,
-  edit: () => false,
-  export: () => false,
-  delete: () => false,
-
-  doc_create: () => false,
-  doc_vector: () => false,
-  doc_generate: () => false,
-  doc_migrate: () => false,
-  doc_edit: () => false,
-  doc_sync: () => false,
-  doc_delete: () => false,
-  doc_export: () => false,
-  doc_download: () => false,
-
-  knowledge_chat_user_edit: () => false,
-
-  problem_create: () => false,
-  problem_relate: () => false,
-  problem_delete: () => false,
-  problem_edit: () => false,
+  sync: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_SYNC
+    ],'OR'
+  ),
+  vector: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_VECTOR
+    ],'OR'
+  ),
+  generate: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_GENERATE
+    ],'OR'
+  ),
+  edit: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_EDIT
+    ],'OR'
+  ),
+  export: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_EXPORT
+    ],'OR'
+  ),
+  delete: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DELETE
+    ],'OR'
+  ),
+  // 文档
+  doc_read: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_READ
+    ],'OR'),  
+  doc_create: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_CREATE
+    ],'OR'
+  ),
+  doc_vector: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_VECTOR
+    ],'OR'
+  ),
+  doc_generate: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_GENERATE
+    ],'OR'
+  ),
+  doc_migrate: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_MIGRATE
+    ],'OR'
+  ),
+  doc_edit: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_EDIT
+    ],'OR'
+  ),
+  doc_sync: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_SYNC
+    ],'OR'
+  ),
+  doc_delete: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_DELETE
+    ],'OR'
+  ),
+  doc_export: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_EXPORT
+    ],'OR'
+  ),
+  doc_download: () => hasPermission(
+    [
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_DOWNLOAD_SOURCE_FILE
+    ],'OR'
+  ),
+  
+  knowledge_chat_user_read: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_CHAT_USER_READ
+    ],'OR'),
+  knowledge_chat_user_edit: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_CHAT_USER_EDIT
+    ],'OR'),
+  
+  problem_read: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_PROBLEM_READ
+    ],'OR'),  
+  problem_create: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_PROBLEM_CREATE
+    ],'OR'
+    ),
+  problem_relate: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_PROBLEM_RELATE
+    ],'OR'
+    ),
+  problem_delete: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_PROBLEM_DELETE
+    ],'OR'
+    ),
+  problem_edit: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_PROBLEM_EDIT
+    ],'OR'
+    ),
   
   folderCreate: () => false,
   folderEdit: () => false,
   folderDelete: () => false,
+  hit_test: () => 
+    hasPermission([
+      RoleConst.ADMIN,
+      PermissionConst.RESOURCE_KNOWLEDGE_HIT_TEST
+    ], 'OR'),
 }
 
 export default systemManage

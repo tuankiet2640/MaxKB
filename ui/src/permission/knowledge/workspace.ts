@@ -35,8 +35,8 @@ const workspace = {
       [
         new ComplexPermission([RoleConst.USER],[PermissionConst.KNOWLEDGE.getKnowledgeWorkspaceResourcePermission(source_id)],[],'AND'),
         RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
-        PermissionConst.KNOWLEDGE_DOCUMENT_SYNC.getKnowledgeWorkspaceResourcePermission(source_id),
-        PermissionConst.KNOWLEDGE_DOCUMENT_SYNC.getWorkspacePermissionWorkspaceManageRole,
+        PermissionConst.KNOWLEDGE_SYNC.getKnowledgeWorkspaceResourcePermission(source_id),
+        PermissionConst.KNOWLEDGE_SYNC.getWorkspacePermissionWorkspaceManageRole,
       ],
       'OR',
     ),
@@ -45,8 +45,8 @@ const workspace = {
       [
         new ComplexPermission([RoleConst.USER],[PermissionConst.KNOWLEDGE.getKnowledgeWorkspaceResourcePermission(source_id)],[],'AND'),
         RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
-        PermissionConst.KNOWLEDGE_DOCUMENT_VECTOR.getKnowledgeWorkspaceResourcePermission(source_id),
-        PermissionConst.KNOWLEDGE_DOCUMENT_VECTOR.getWorkspacePermissionWorkspaceManageRole,
+        PermissionConst.KNOWLEDGE_VECTOR.getKnowledgeWorkspaceResourcePermission(source_id),
+        PermissionConst.KNOWLEDGE_VECTOR.getWorkspacePermissionWorkspaceManageRole,
       ],
       'OR',
     ),
@@ -110,6 +110,7 @@ const workspace = {
       ],
       'OR',
     ),
+  doc_read: () => false,  
   doc_create: (source_id:string) =>
     hasPermission(
       [
@@ -200,6 +201,7 @@ const workspace = {
       ],
       'OR',
     ), 
+  knowledge_chat_user_read: (source_id:string) => false,  
   knowledge_chat_user_edit: (source_id:string) => 
     hasPermission(
       [
@@ -209,7 +211,17 @@ const workspace = {
         PermissionConst.KNOWLEDGE_CHAT_USER_EDIT.getWorkspacePermissionWorkspaceManageRole,
       ]
       ,'OR'
-    ),  
+    ),
+  problem_read: (source_id:string) =>
+    hasPermission(
+      [
+        new ComplexPermission([RoleConst.USER],[PermissionConst.KNOWLEDGE.getKnowledgeWorkspaceResourcePermission(source_id)],[],'AND'),
+        RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
+        PermissionConst.KNOWLEDGE_PROBLEM_READ.getKnowledgeWorkspaceResourcePermission(source_id),
+        PermissionConst.KNOWLEDGE_PROBLEM_READ.getWorkspacePermissionWorkspaceManageRole,
+      ],
+      'OR',
+    ),   
   problem_create: (source_id:string) =>
     hasPermission(
       [
@@ -250,6 +262,7 @@ const workspace = {
       ],
       'OR',
     ),
+  hit_test: () => false,  
 }
 
 export default workspace

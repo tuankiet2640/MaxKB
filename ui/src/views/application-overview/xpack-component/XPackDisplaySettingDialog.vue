@@ -15,7 +15,7 @@
           {{ $t('views.applicationOverview.appInfo.SettingDisplayDialog.dialogTitle') }}
         </h4>
         <div class="flex align-center">
-          <el-button type="primary" @click.prevent="resetForm" link>
+          <el-button @click.prevent="resetForm" link>
             <el-icon class="mr-4">
               <Refresh />
             </el-icon>
@@ -481,11 +481,11 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import type { FormInstance, FormRules, UploadFiles } from 'element-plus'
 import { isAppIcon } from '@/utils/common'
-import applicationApi from '@/api/application/application'
 import { MsgSuccess, MsgError } from '@/utils/message'
 import { langList, t } from '@/locales'
 import useStore from '@/stores'
 import { cloneDeep } from 'lodash'
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 
 const { user } = useStore()
 
@@ -493,6 +493,14 @@ const route = useRoute()
 const {
   params: { id },
 } = route
+
+const apiType = computed(() => {
+  if (route.path.includes('resource-management')) {
+    return 'systemManage'
+  } else {
+    return 'workspace'
+  }
+})
 
 const emit = defineEmits(['refresh'])
 
@@ -663,12 +671,14 @@ const submit = async (formEl: FormInstance | undefined) => {
           fd.append(item, xpackForm.value[item])
         }
       })
-      applicationApi.putXpackAccessToken(id as string, fd, loading).then((res) => {
-        emit('refresh')
-        // @ts-ignore
-        MsgSuccess(t('common.settingSuccess'))
-        dialogVisible.value = false
-      })
+      loadSharedApi({ type: 'application', systemType: apiType.value })
+        .putXpackAccessToken(id as string, fd, loading)
+        .then(() => {
+          emit('refresh')
+          // @ts-ignore
+          MsgSuccess(t('common.settingSuccess'))
+          dialogVisible.value = false
+        })
     }
   })
 }

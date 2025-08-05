@@ -89,7 +89,7 @@
           </el-form-item>
         </el-form>
 
-        <div class="text-right">
+        <div>
           <el-button @click="submit(authFormRef)" type="primary" :disabled="loading"
             v-hasPermission="
                       new ComplexPermission(
@@ -207,6 +207,9 @@ function getDetail() {
   authApi.getAuthSetting(form.value.auth_type, loading).then((res: any) => {
     if (res.data && JSON.stringify(res.data) !== '{}') {
       form.value = res.data
+    }
+    if (!form.value.config.redirectUrl) {
+      form.value.config.redirectUrl = window.location.origin + window.MaxKB.chatPrefix + '/api/auth/oauth2'
     }
   })
 }

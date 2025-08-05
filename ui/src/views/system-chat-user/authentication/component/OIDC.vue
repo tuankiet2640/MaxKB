@@ -86,7 +86,7 @@
           </el-form-item>
         </el-form>
 
-        <div class="text-right">
+        <div>
           <el-button @click="submit(authFormRef)" type="primary" :disabled="loading"
             v-hasPermission="
                       new ComplexPermission(
@@ -219,6 +219,9 @@ function getDetail() {
         form.value.config.fieldMapping = '{"username": "preferred_username", "email": "email"}'
       }
     }
+    if (!form.value.config.redirectUrl) {
+        form.value.config.redirectUrl = window.location.origin + window.MaxKB.chatPrefix + '/api/auth/oidc'
+      }
   })
 }
 

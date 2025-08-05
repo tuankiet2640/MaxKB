@@ -85,7 +85,7 @@
             class="user-input-button mb-8"
             @click="toggleUserInput"
           >
-            <el-icon :size="16" class="mr-4"><EditPen /></el-icon>
+            <AppIcon iconName="app-edit" :size="16" class="mr-4"></AppIcon>
             <span class="ellipsis">
               {{ userInputTitle || $t('chat.userInput') }}
             </span>
@@ -171,13 +171,13 @@ const initialApiFormData = ref({})
 const isUserInput = computed(
   () =>
     props.applicationDetails.work_flow?.nodes?.filter((v: any) => v.id === 'base-node')[0]
-      .properties.user_input_field_list.length > 0,
+      ?.properties.user_input_field_list.length > 0,
 )
 
 const userInputTitle = computed(
   () =>
     props.applicationDetails.work_flow?.nodes?.filter((v: any) => v.id === 'base-node')[0]
-      .properties?.user_input_config?.title,
+      ?.properties?.user_input_config?.title,
 )
 const isAPIInput = computed(
   () =>
@@ -316,11 +316,6 @@ const openChatId: () => Promise<string> = () => {
       return res.data
     })
     .catch((res) => {
-      // if (res.response.status === 403) {
-      //   return application.asyncAppAuthentication(accessToken).then(() => {
-      //     return openChatId()
-      //   })
-      // }
       return Promise.reject(res)
     })
 }

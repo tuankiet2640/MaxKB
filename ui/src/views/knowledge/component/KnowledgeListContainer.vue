@@ -219,10 +219,8 @@
                 <template #mouseEnter>
                   <div @click.stop v-if="!isShared">
                     <el-dropdown trigger="click">
-                      <el-button text @click.stop>
-                        <el-icon>
-                          <MoreFilled />
-                        </el-icon>
+                      <el-button text @click.stop v-if="MoreFilledPermission(item)">
+                        <AppIcon iconName="app-more"></AppIcon>
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
@@ -243,14 +241,15 @@
                           <el-dropdown-item
                             icon="Connection"
                             @click.stop="openGenerateDialog(item)"
-                            v-if="permissionPrecise.doc_generate(item.id)"
+                            v-if="permissionPrecise.generate(item.id)"
                             >{{ $t('views.document.generateQuestion.title') }}
                           </el-dropdown-item>
                           <el-dropdown-item
                             v-if="isSystemShare"
-                            icon="Lock"
                             @click.stop="openAuthorizedWorkspaceDialog(item)"
-                            >{{ $t('views.shared.authorized_workspace') }}</el-dropdown-item
+                          >
+                            <AppIcon iconName="app-key"></AppIcon>
+                            {{ $t('views.shared.authorized_workspace') }}</el-dropdown-item
                           >
 
                           <el-dropdown-item
@@ -287,11 +286,11 @@
                             >{{ $t('views.document.setting.export') }} ZIP</el-dropdown-item
                           >
                           <el-dropdown-item
-                            icon="Delete"
                             type="danger"
                             @click.stop="deleteKnowledge(item)"
                             v-if="permissionPrecise.delete(item.id)"
                           >
+                            <AppIcon iconName="app-delete"></AppIcon>
                             {{ $t('common.delete') }}</el-dropdown-item
                           >
                         </el-dropdown-menu>
@@ -373,6 +372,18 @@ const isSystemShare = computed(() => {
   return apiType.value === 'systemShare'
 })
 
+const MoreFilledPermission = (item: any) => {
+  return (
+    (item.type === 1 && permissionPrecise.value.sync(item.id)) ||
+    permissionPrecise.value.vector(item.id) ||
+    permissionPrecise.value.generate(item.id) ||
+    (permissionPrecise.value.edit(item.id) && apiType.value) === 'workspace' ||
+    permissionPrecise.value.export(item.id) ||
+    permissionPrecise.value.delete(item.id) ||
+    isSystemShare.value
+  )
+}
+
 const loading = ref(false)
 
 const search_type = ref('name')
@@ -437,7 +448,7 @@ const search_type_change = () => {
 const GenerateRelatedDialogRef = ref<InstanceType<typeof GenerateRelatedDialog>>()
 function openGenerateDialog(row: any) {
   if (GenerateRelatedDialogRef.value) {
-    GenerateRelatedDialogRef.value.open([], 'knowledge', row.id)
+    GenerateRelatedDialogRef.value.open([], 'knowledge', row)
   }
 }
 

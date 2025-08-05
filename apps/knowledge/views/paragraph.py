@@ -44,7 +44,6 @@ class ParagraphView(APIView):
                 'document_id': document_id
             }
         )
-        q.is_valid(raise_exception=True)
         return result.success(q.list())
 
     @extend_schema(
@@ -347,8 +346,8 @@ class ParagraphView(APIView):
             tags=[_('Knowledge Base/Documentation/Paragraph')]  # type: ignore
         )
         @has_permissions(
-            PermissionConstants.KNOWLEDGE_DOCUMENT_EDIT.get_workspace_knowledge_permission(),
-            PermissionConstants.KNOWLEDGE_DOCUMENT_EDIT.get_workspace_permission_workspace_manage_role(),
+            PermissionConstants.KNOWLEDGE_PROBLEM_RELATE.get_workspace_knowledge_permission(),
+            PermissionConstants.KNOWLEDGE_PROBLEM_RELATE.get_workspace_permission_workspace_manage_role(),
             RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
             ViewPermission([RoleConstants.USER.get_workspace_role()],
                            [PermissionConstants.KNOWLEDGE.get_workspace_knowledge_permission()], CompareConstants.AND),
@@ -385,8 +384,8 @@ class ParagraphView(APIView):
             tags=[_('Knowledge Base/Documentation/Paragraph')]  # type: ignore
         )
         @has_permissions(
-            PermissionConstants.KNOWLEDGE_DOCUMENT_EDIT.get_workspace_knowledge_permission(),
-            PermissionConstants.KNOWLEDGE_DOCUMENT_EDIT.get_workspace_permission_workspace_manage_role(),
+            PermissionConstants.KNOWLEDGE_PROBLEM_RELATE.get_workspace_knowledge_permission(),
+            PermissionConstants.KNOWLEDGE_PROBLEM_RELATE.get_workspace_permission_workspace_manage_role(),
             RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
             ViewPermission([RoleConstants.USER.get_workspace_role()],
                            [PermissionConstants.KNOWLEDGE.get_workspace_knowledge_permission()], CompareConstants.AND),
@@ -438,7 +437,6 @@ class ParagraphView(APIView):
                     'document_id': document_id
                 }
             )
-            d.is_valid(raise_exception=True)
             return result.success(d.page(current_page, page_size))
 
     class AdjustPosition(APIView):

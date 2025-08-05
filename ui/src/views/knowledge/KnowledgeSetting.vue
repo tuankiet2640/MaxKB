@@ -184,7 +184,6 @@ import { useRoute } from 'vue-router'
 import BaseForm from '@/views/knowledge/component/BaseForm.vue'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
 import { t } from '@/locales'
-import { PermissionConst, RoleConst } from '@/utils/permission/data'
 import permissionMap from '@/permission'
 
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'

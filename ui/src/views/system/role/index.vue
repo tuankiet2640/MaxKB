@@ -72,49 +72,31 @@
                           >({{ roleTypeMap[row.type as RoleTypeEnum] }})</span
                         >
                       </span>
-                      <div @click.stop v-show="mouseId === row.id">
+                      <div
+                        @click.stop
+                        v-show="mouseId === row.id"
+                        v-if="editPermission() || delPermission()"
+                      >
                         <el-dropdown :teleported="false" trigger="click">
                           <el-button text>
-                            <el-icon class="color-secondary">
-                              <MoreFilled />
-                            </el-icon>
+                            <AppIcon iconName="app-more"></AppIcon>
                           </el-button>
                           <template #dropdown>
                             <el-dropdown-menu style="min-width: 80px">
                               <el-dropdown-item
                                 @click.stop="createOrUpdateRole(row)"
                                 class="p-8"
-                                v-if="
-                                  hasPermission(
-                                    new ComplexPermission(
-                                      [RoleConst.ADMIN],
-                                      [PermissionConst.ROLE_EDIT],
-                                      [],
-                                      'OR',
-                                    ),
-                                    'OR',
-                                  )
-                                "
+                                v-if="editPermission()"
                               >
-                                <el-icon><EditPen /></el-icon>
+                                <AppIcon iconName="app-edit"></AppIcon>
                                 {{ $t('common.rename') }}
                               </el-dropdown-item>
                               <el-dropdown-item
                                 @click.stop="deleteRole(row)"
                                 class="border-t p-8"
-                                v-if="
-                                  hasPermission(
-                                    new ComplexPermission(
-                                      [RoleConst.ADMIN],
-                                      [PermissionConst.ROLE_DELETE],
-                                      [],
-                                      'OR',
-                                    ),
-                                    'OR',
-                                  )
-                                "
+                                v-if="delPermission()"
                               >
-                                <el-icon><Delete /></el-icon>
+                                <AppIcon iconName="app-delete"></AppIcon>
                                 {{ $t('common.delete') }}
                               </el-dropdown-item>
                             </el-dropdown-menu>
@@ -203,6 +185,20 @@ async function getRole() {
   } catch (error) {
     console.error(error)
   }
+}
+
+const editPermission = () => {
+  return hasPermission(
+    new ComplexPermission([RoleConst.ADMIN], [PermissionConst.ROLE_EDIT], [], 'OR'),
+    'OR',
+  )
+}
+
+const delPermission = () => {
+  return hasPermission(
+    new ComplexPermission([RoleConst.ADMIN], [PermissionConst.ROLE_DELETE], [], 'OR'),
+    'OR',
+  )
 }
 
 onMounted(async () => {

@@ -13,6 +13,7 @@
       :rules="rules"
       label-position="top"
       require-asterisk-position="right"
+      @submit.prevent
     >
       <el-form-item :label="$t('views.application.form.appName.label')" prop="name">
         <el-input
@@ -56,7 +57,6 @@ import { MsgSuccess, MsgAlert } from '@/utils/message'
 import { isWorkFlow } from '@/utils/application'
 import { t } from '@/locales'
 import useStore from '@/stores'
-import { ValidType, ValidCount } from '@/enums/common'
 const router = useRouter()
 const { common, user } = useStore()
 
@@ -158,9 +158,9 @@ const submitHandle = async (formEl: FormInstance | undefined) => {
         .then((res) => {
           MsgSuccess(t('common.createSuccess'))
           if (isWorkFlow(applicationForm.value.type)) {
-            router.push({ path: `/application/${res.data.id}/workflow` })
+            router.push({ path: `/application/workspace/${res.data.id}/workflow` })
           } else {
-            router.push({ path: `/application/${res.data.id}/${res.data.type}/setting` })
+            router.push({ path: `/application/workspace/${res.data.id}/${res.data.type}/setting` })
           }
           dialogVisible.value = false
         })

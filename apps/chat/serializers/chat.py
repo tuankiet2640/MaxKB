@@ -253,6 +253,7 @@ class ChatSerializers(serializers.Serializer):
         # 构建运行参数
         params = chat_info.to_pipeline_manage_params(message, get_post_handler(chat_info), exclude_paragraph_id_list,
                                                      chat_user_id, chat_user_type, stream, form_data)
+        chat_info.set_chat(message)
         # 运行流水线作业
         pipeline_message.run(params)
         return pipeline_message.context['chat_result']
@@ -307,6 +308,7 @@ class ChatSerializers(serializers.Serializer):
                                           other_list,
                                           instance.get('runtime_node_id'),
                                           instance.get('node_data'), chat_record, instance.get('child_node'))
+        chat_info.set_chat(message)
         r = work_flow_manage.run()
         return r
 
@@ -419,8 +421,7 @@ class OpenChatSerializers(serializers.Serializer):
                 '-create_time')[0:1].first()
             if application_version is None:
                 raise AppApiException(500,
-                                      gettext(
-                                          "The application has not been published. Please use it after publishing."))
+                                      _("The application has not been published. Please use it after publishing."))
         if application.type == ApplicationTypeChoices.SIMPLE:
             return self.open_simple(application)
         else:

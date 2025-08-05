@@ -47,7 +47,7 @@ import { groupBy } from 'lodash'
 import type { knowledgeData } from '@/api/type/knowledge'
 import { t } from '@/locales'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-
+import modelResourceApi from '@/api/system-resource-management/model'
 const props = defineProps<{
   data?: {
     type: Object
@@ -60,6 +60,7 @@ const form = ref<knowledgeData>({
   desc: '',
   embedding_model_id: '',
 })
+const workspace_id = ref('')
 
 const rules = reactive({
   name: [
@@ -96,6 +97,9 @@ watch(
       form.value.name = value.name
       form.value.desc = value.desc
       form.value.embedding_model_id = value.embedding_model_id
+      workspace_id.value = value.workspace_id || ''
+      // 重新刷新模型列表
+      getSelectModel()
     }
   },
   {
@@ -115,8 +119,17 @@ function validate() {
 
 function getSelectModel() {
   loading.value = true
+  const obj =
+    props.apiType === 'systemManage'
+      ? {
+          model_type: 'EMBEDDING',
+          workspace_id: workspace_id.value,
+        }
+      : {
+          model_type: 'EMBEDDING',
+        }
   loadSharedApi({ type: 'model', systemType: props.apiType })
-    .getSelectModelList({ model_type: 'EMBEDDING' })
+    .getSelectModelList(obj)
     .then((res: any) => {
       modelOptions.value = groupBy(res?.data, 'provider')
       loading.value = false
@@ -127,8 +140,11 @@ function getSelectModel() {
 }
 
 onMounted(() => {
-  getSelectModel()
+  if (props.apiType !== 'systemManage') {
+    getSelectModel()
+  }
 })
+
 onUnmounted(() => {
   form.value = {
     name: '',

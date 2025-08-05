@@ -49,59 +49,20 @@
               <h4 class="medium ellipsis" :title="current?.name">{{ current?.name || '-' }}</h4>
               <el-divider direction="vertical" class="mr-8 ml-8" />
 
-              <el-icon class="color-input-placeholder"><UserFilled /></el-icon>
+              <el-icon class="color-input-placeholder">
+                <UserFilled />
+              </el-icon>
               <span class="color-input-placeholder ml-4">
                 {{ paginationConfig.total }}
               </span>
             </div>
-            <el-button
-              type="primary"
-              :disabled="current?.is_auth"
-              @click="handleSave"
-              v-if="
-                route.path.includes('share/')
-                  ? false
-                  : hasPermission(
-                      permissionObj[
-                        route.path.includes('shared')
-                          ? 'SHAREDKNOWLEDGE'
-                          : (route.meta?.resourceType as string)
-                      ],
-                      'OR',
-                    )
-              "
-            >
-              {{ t('common.save') }}
-            </el-button>
-          </div>
 
-          <div class="flex-between mb-16" style="margin-top: 18px">
-            <div class="flex complex-search">
-              <el-select class="complex-search__left" v-model="searchType" style="width: 120px">
-                <el-option :label="$t('views.login.loginForm.username.label')" value="name" />
-              </el-select>
-              <el-input
-                v-if="searchType === 'name'"
-                v-model="searchForm.name"
-                @change="getList"
-                :placeholder="$t('common.inputPlaceholder')"
-                style="width: 220px"
-                clearable
-              />
-            </div>
             <div
               class="flex align-center"
               v-if="
                 route.path.includes('share/')
                   ? false
-                  : hasPermission(
-                      permissionObj[
-                        route.path.includes('shared')
-                          ? 'SHAREDKNOWLEDGE'
-                          : (route.meta?.resourceType as string)
-                      ],
-                      'OR',
-                    )
+                  : hasPermission(permissionObj[currentPermissionKey], 'OR')
               "
             >
               <div class="color-secondary mr-8">{{ $t('views.chatUser.autoAuthorization') }}</div>
@@ -112,6 +73,64 @@
                 :loading="loading"
               ></el-switch>
             </div>
+          </div>
+
+          <div class="flex-between mb-16" style="margin-top: 18px">
+            <div class="flex complex-search">
+              <el-select class="complex-search__left" v-model="searchType" style="width: 120px">
+                <el-option :label="$t('views.login.loginForm.username.label')" value="username" />
+                <el-option
+                  :label="$t('views.userManage.userForm.nick_name.label')"
+                  value="nick_name"
+                />
+                <el-option :label="$t('views.userManage.source.label')" value="source" />
+              </el-select>
+              <el-input
+                v-if="searchType === 'username'"
+                v-model="searchForm.username"
+                @change="getList"
+                :placeholder="$t('common.inputPlaceholder')"
+                style="width: 220px"
+                clearable
+              />
+              <el-input
+                v-else-if="searchType === 'nick_name'"
+                v-model="searchForm.nick_name"
+                @change="getList"
+                :placeholder="$t('common.inputPlaceholder')"
+                style="width: 220px"
+                clearable
+              />
+              <el-select
+                v-else-if="searchType === 'source'"
+                v-model="searchForm.source"
+                @change="getList"
+                :placeholder="$t('common.selectPlaceholder')"
+                style="width: 220px"
+                clearable
+              >
+                <el-option :label="$t('views.userManage.source.local')" value="LOCAL" />
+                <el-option label="CAS" value="CAS" />
+                <el-option label="LDAP" value="LDAP" />
+                <el-option label="OIDC" value="OIDC" />
+                <el-option label="OAuth2" value="OAuth2" />
+                <el-option :label="$t('views.userManage.source.wecom')" value="wecom" />
+                <el-option :label="$t('views.userManage.source.lark')" value="lark" />
+                <el-option :label="$t('views.userManage.source.dingtalk')" value="dingtalk" />
+              </el-select>
+            </div>
+            <el-button
+              type="primary"
+              :disabled="current?.is_auth"
+              @click="handleSave"
+              v-if="
+                route.path.includes('share/')
+                  ? false
+                  : hasPermission(permissionObj[currentPermissionKey], 'OR')
+              "
+            >
+              {{ t('common.save') }}
+            </el-button>
           </div>
 
           <app-table
@@ -150,8 +169,8 @@
                   :indeterminate="allIndeterminate"
                   :disabled="current?.is_auth"
                   @change="handleCheckAll"
-                  >{{ $t('views.chatUser.authorization') }}</el-checkbox
-                >
+                  >{{ $t('views.chatUser.authorization') }}
+                </el-checkbox>
               </template>
               <template #default="{ row }">
                 <el-checkbox
@@ -207,12 +226,26 @@ const permissionObj = ref<any>({
     [],
     'OR',
   ),
+  RESOURCE_APPLICATION: [RoleConst.ADMIN, PermissionConst.RESOURCE_APPLICATION_CHAT_USER_EDIT],
+  RESOURCE_KNOWLEDGE: [RoleConst.ADMIN, PermissionConst.RESOURCE_KNOWLEDGE_CHAT_USER_EDIT],
   SHAREDKNOWLEDGE: new ComplexPermission(
     [RoleConst.ADMIN],
     [PermissionConst.SHARED_KNOWLEDGE_CHAT_USER_EDIT],
     [],
     'OR',
   ),
+})
+
+const currentPermissionKey = computed(() => {
+  if (route.path.includes('shared')) return 'SHAREDKNOWLEDGE'
+  if (route.path.includes('resource-management')) {
+    if (route.meta?.resourceType === 'KNOWLEDGE') {
+      return 'RESOURCE_KNOWLEDGE'
+    } else if (route.meta?.resourceType === 'APPLICATION') {
+      return 'RESOURCE_APPLICATION'
+    }
+  }
+  return route.meta?.resourceType as string
 })
 
 const resource = reactive({
@@ -296,9 +329,11 @@ async function changeAuth() {
 
 const rightLoading = ref(false)
 
-const searchType = ref('name')
+const searchType = ref('username')
 const searchForm = ref<Record<string, any>>({
-  name: '',
+  username: '',
+  nick_name: '',
+  source: '',
 })
 const paginationConfig = reactive({
   current_page: 1,
@@ -314,18 +349,17 @@ const isShared = computed(() => {
 
 async function getList() {
   if (!current.value?.id) return
+  const params: any = {}
+  const searchValue = searchForm.value[searchType.value as keyof typeof searchForm.value]
+  if (searchValue !== undefined && searchValue !== null && searchValue !== '') {
+    params[searchType.value] = searchValue
+  }
   try {
     const res = await loadSharedApi({
       type: 'chatUser',
       isShared: isShared.value,
       systemType: apiType.value,
-    }).getUserGroupUserList(
-      resource,
-      current.value?.id,
-      paginationConfig,
-      searchForm.value.name,
-      rightLoading,
-    )
+    }).getUserGroupUserList(resource, current.value?.id, paginationConfig, params, rightLoading)
     // 更新缓存和回显状态
     res.data.records.forEach((item: any) => {
       if (checkedMap[item.id] === undefined) {

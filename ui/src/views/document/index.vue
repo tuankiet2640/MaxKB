@@ -29,7 +29,7 @@
                   type="primary"
                   @click="
                     router.push({
-                      path: `/knowledge/import`,
+                      path: `/knowledge/import/${folderId}`,
                       query: {
                         id: id,
                         folder_token: knowledgeDetail?.meta.folder_token,
@@ -56,9 +56,9 @@
                   v-if="permissionPrecise.doc_migrate(id)"
                   >{{ $t('views.document.setting.migration') }}
                 </el-button>
-                <el-dropdown>
+                <el-dropdown v-if="MoreFilledPermission0(id)">
                   <el-button class="ml-12 mr-12">
-                    <el-icon><MoreFilled /></el-icon>
+                    <AppIcon iconName="app-more"></AppIcon>
                   </el-button>
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -420,9 +420,9 @@
                     </span>
                   </el-tooltip>
                   <span @click.stop>
-                    <el-dropdown trigger="click">
+                    <el-dropdown trigger="click" v-if="MoreFilledPermission1(id)">
                       <el-button text type="primary">
-                        <el-icon><MoreFilled /></el-icon>
+                        <AppIcon iconName="app-more"></AppIcon>
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
@@ -474,10 +474,10 @@
                             {{ $t('views.document.setting.download') }}
                           </el-dropdown-item>
                           <el-dropdown-item
-                            icon="Delete"
                             @click.stop="deleteDocument(row)"
                             v-if="permissionPrecise.doc_delete(id)"
                           >
+                            <AppIcon iconName="app-delete"></AppIcon>
                             {{ $t('common.delete') }}</el-dropdown-item
                           >
                         </el-dropdown-menu>
@@ -531,9 +531,9 @@
                     </span>
                   </el-tooltip>
                   <span @click.stop>
-                    <el-dropdown trigger="click">
+                    <el-dropdown trigger="click" v-if="MoreFilledPermission2(id)">
                       <el-button text type="primary">
-                        <el-icon><MoreFilled /></el-icon>
+                        <AppIcon iconName="app-more"></AppIcon>
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
@@ -585,10 +585,10 @@
                             {{ $t('views.document.setting.export') }} Zip
                           </el-dropdown-item>
                           <el-dropdown-item
-                            icon="Delete"
                             @click.stop="deleteDocument(row)"
                             v-if="permissionPrecise.doc_delete(id)"
                           >
+                            <AppIcon iconName="app-delete"></AppIcon>
                             {{ $t('common.delete') }}
                           </el-dropdown-item>
                         </el-dropdown-menu>
@@ -631,7 +631,7 @@
     <ImportDocumentDialog ref="ImportDocumentDialogRef" :title="title" @refresh="refresh" />
     <SyncWebDialog ref="SyncWebDialogRef" @refresh="refresh" />
     <!-- 选择知识库 -->
-    <SelectKnowledgeDialog ref="selectKnowledgeDialogRef" @refresh="refreshMigrate" />
+    <SelectKnowledgeDialog ref="selectKnowledgeDialogRef" @refresh="refreshMigrate" :workspaceId="knowledgeDetail?.workspace_id"/>
     <GenerateRelatedDialog ref="GenerateRelatedDialogRef" @refresh="getList" :apiType="apiType" />
   </div>
 </template>
@@ -696,6 +696,35 @@ const apiType = computed(() => {
 const permissionPrecise = computed(() => {
   return permissionMap['knowledge'][apiType.value]
 })
+
+const MoreFilledPermission0 = (id: string) => {
+  return (
+    permissionPrecise.value.doc_edit(id) ||
+    (knowledgeDetail?.value.type === 1 && permissionPrecise.value.doc_sync(id)) ||
+    (knowledgeDetail?.value.type === 2 && permissionPrecise.value.doc_sync(id)) ||
+    permissionPrecise.value.doc_delete(id)
+  )
+}
+
+const MoreFilledPermission1 = (id: string) => {
+  return (
+    permissionPrecise.value.doc_generate(id) ||
+    permissionPrecise.value.doc_migrate(id) ||
+    permissionPrecise.value.doc_export(id) ||
+    permissionPrecise.value.doc_download(id) ||
+    permissionPrecise.value.doc_delete(id)
+  )
+}
+
+const MoreFilledPermission2 = (id: string) => {
+  return (
+    permissionPrecise.value.doc_edit(id) ||
+    permissionPrecise.value.doc_generate(id) ||
+    permissionPrecise.value.doc_migrate(id) ||
+    permissionPrecise.value.doc_export(id) ||
+    permissionPrecise.value.doc_delete(id)
+  )
+}
 
 const getTaskState = (status: string, taskType: number) => {
   const statusList = status.split('').reverse()
@@ -909,7 +938,7 @@ function rowClickHandle(row: any, column: any) {
 
   router.push({
     path: `/paragraph/${id}/${row.id}`,
-    query: { type: apiType.value, isShared: isShared.value ? 'true' : 'false' },
+    query: { from: apiType.value, isShared: isShared.value ? 'true' : 'false' },
   })
 }
 

@@ -172,16 +172,28 @@
 import { cloneDeep, set, groupBy } from 'lodash'
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import type { FormInstance } from 'element-plus'
-import { ref, computed, onMounted } from 'vue'
-import useStore from '@/stores'
+import { ref, computed, onMounted, inject } from 'vue'
 import { isLastNode } from '@/workflow/common/data'
 import AIModeParamSettingDialog from '@/views/application/component/AIModeParamSettingDialog.vue'
 import { t } from '@/locales'
 import ReasoningParamSettingDialog from '@/views/application/component/ReasoningParamSettingDialog.vue'
 import McpServersDialog from '@/views/application/component/McpServersDialog.vue'
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import { useRoute } from 'vue-router'
+const getApplicationDetail = inject('getApplicationDetail') as any
 const route = useRoute()
-const { model } = useStore()
+
+const {
+  params: { id },
+} = route as any
+
+const apiType = computed(() => {
+  if (route.path.includes('resource-management')) {
+    return 'systemManage'
+  } else {
+    return 'workspace'
+  }
+})
 
 const wheel = (e: any) => {
   if (e.ctrlKey === true) {
@@ -208,9 +220,6 @@ const model_change = (model_id?: string) => {
     refreshParam({})
   }
 }
-const {
-  params: { id },
-} = route as any
 
 // @ts-ignore
 const defaultPrompt = `${t('views.applicationWorkflow.nodes.aiChatNode.defaultPrompt')}：
@@ -268,10 +277,23 @@ const validate = () => {
   })
 }
 
+const application = getApplicationDetail()
+
 function getSelectModel() {
-  model.asyncGetSelectModel({ model_type: 'LLM' }).then((res: any) => {
-    modelOptions.value = groupBy(res?.data, 'provider')
-  })
+  const obj =
+    apiType.value === 'systemManage'
+      ? {
+          model_type: 'LLM',
+          workspace_id: application.value?.workspace_id,
+        }
+      : {
+          model_type: 'LLM',
+        }
+  loadSharedApi({ type: 'model', systemType: apiType.value })
+    .getSelectModelList(obj)
+    .then((res: any) => {
+      modelOptions.value = groupBy(res?.data, 'provider')
+    })
 }
 
 const openAIParamSettingDialog = (modelId: string) => {

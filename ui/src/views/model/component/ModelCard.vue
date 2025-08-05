@@ -5,12 +5,12 @@
     </template>
     <template #title>
       <div class="flex" style="height: 22px">
-        <span class="ellipsis-1 mb-4" :title="model.name" style="width: 80%">
+        <span class="ellipsis-1 mb-4" :title="model.name" style="max-width: 80%">
           {{ model.name }}
         </span>
         <span v-if="currentModel.status === 'ERROR'">
           <el-tooltip effect="dark" :content="errMessage" placement="top">
-            <el-icon class="color-danger ml-4" size="18"><Warning /></el-icon>
+            <el-icon class="color-danger ml-4" size="18"><WarningFilled /></el-icon>
           </el-tooltip>
         </span>
         <span v-if="currentModel.status === 'PAUSE_DOWNLOAD'">
@@ -19,7 +19,7 @@
             :content="`${$t('views.model.modelForm.base_model.label')}: ${props.model.model_name} ${$t('views.model.tip.downloadError')}`"
             placement="top"
           >
-            <el-icon class="color-danger ml-4" size="18"><Warning /></el-icon>
+            <el-icon class="color-danger ml-4" size="18"><WarningFilled /></el-icon>
           </el-tooltip>
         </span>
       </div>
@@ -64,28 +64,27 @@
       </div>
     </div>
 
-    <template #mouseEnter>
+    <template #mouseEnter v-if="MoreFilledPermission(model.id)">
       <el-dropdown trigger="click" v-if="!isShared">
         <el-button text @click.stop>
-          <el-icon>
-            <MoreFilled />
-          </el-icon>
+          <AppIcon iconName="app-more"></AppIcon>
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item
               v-if="permissionPrecise.modify(model.id)"
-              icon="EditPen"
               text
               @click.stop="openEditModel"
             >
-              {{ $t('common.modify') }}
+              <AppIcon iconName="app-edit"></AppIcon>
+              {{ $t('common.edit') }}
             </el-dropdown-item>
             <el-dropdown-item
               v-if="isSystemShare"
-              icon="Lock"
               @click.stop="openAuthorizedWorkspaceDialog(model)"
-              >{{ $t('views.shared.authorized_workspace') }}
+            >
+              <AppIcon iconName="app-key"></AppIcon>
+              {{ $t('views.shared.authorized_workspace') }}
             </el-dropdown-item>
 
             <el-dropdown-item
@@ -103,11 +102,11 @@
             </el-dropdown-item>
             <el-dropdown-item
               divided
-              icon="Delete"
               text
               @click.stop="deleteModel"
               v-if="permissionPrecise.delete(model.id)"
             >
+              <AppIcon iconName="app-delete"></AppIcon>
               {{ $t('common.delete') }}
             </el-dropdown-item>
           </el-dropdown-menu>
@@ -115,7 +114,7 @@
       </el-dropdown>
     </template>
     <EditModel ref="editModelRef" @submit="emit('change')"></EditModel>
-    <ParamSettingDialog ref="paramSettingRef" :model="model" />
+    <ParamSettingDialog ref="paramSettingRef" />
     <AuthorizedWorkspace
       ref="AuthorizedWorkspaceDialogRef"
       v-if="isSystemShare"
@@ -147,9 +146,21 @@ const props = defineProps<{
   apiType: 'systemShare' | 'workspace' | 'systemManage'
 }>()
 
+const apiType = props.apiType
+
+const isSystemShare = computed(() => {
+  return apiType === 'systemShare'
+})
+
 const permissionPrecise = computed(() => {
   return permissionMap['model'][props.apiType]
 })
+
+const MoreFilledPermission = (id: any) => {
+  return (
+    permissionPrecise.value.modify(id) || permissionPrecise.value.delete(id) || isSystemShare.value
+  )
+}
 
 const downModel = ref<Model>()
 
@@ -242,7 +253,7 @@ const closeInterval = () => {
 
 const paramSettingRef = ref<InstanceType<typeof ParamSettingDialog>>()
 const openParamSetting = () => {
-  paramSettingRef.value?.open()
+  paramSettingRef.value?.open(props.model)
 }
 
 const AuthorizedWorkspaceDialogRef = ref()

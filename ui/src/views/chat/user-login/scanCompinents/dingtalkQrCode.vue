@@ -1,6 +1,6 @@
 <template>
   <div class="flex-center mb-16">
-    <img src="@/assets/logo/logo_dingtalk.svg" alt="" width="24px" class="mr-4" />
+    <img src="@/assets/logo/logo_dingtalk.svg" alt="" width="24px" class="mr-4"/>
     <h2>{{ $t('views.system.authentication.scanTheQRCode.dingtalkQrCode') }}</h2>
   </div>
   <div class="ding-talk-qrName">
@@ -9,11 +9,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
-import { useScriptTag } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useScriptTag} from '@vueuse/core'
+import {ref, watch} from 'vue'
 import useStore from '@/stores'
-import { MsgError } from '@/utils/message'
+import {MsgError} from '@/utils/message'
 // 声明 DTFrameLogin 和 QRLogin 的类型
 declare global {
   interface Window {
@@ -70,9 +70,14 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-const { login } = useStore()
-const { load } = useScriptTag('https://g.alicdn.com/dingding/h5-dingtalk-login/0.21.0/ddlogin.js')
+const {chatUser} = useStore()
+const {load} = useScriptTag('https://g.alicdn.com/dingding/h5-dingtalk-login/0.21.0/ddlogin.js')
 const isConfigReady = ref(false)
+
+const route = useRoute()
+const {
+  params: {accessToken},
+} = route as any
 
 const initActive = async () => {
   try {
@@ -99,14 +104,18 @@ const initActive = async () => {
         client_id: data.appKey,
         scope: 'openid corpid',
         response_type: 'code',
-        state: 'fit2cloud-ding-qr',
+        state: 'fit2cloud-ding-chat-qr',
         prompt: 'consent',
         corpId: data.corp_id
       },
       (loginResult) => {
         const authCode = loginResult.authCode
-        login.dingCallback(authCode).then(() => {
-          router.push({ name: 'home' })
+        chatUser.dingCallback(authCode, accessToken).then(() => {
+          router.push({
+            name: 'chat',
+            params: {accessToken: accessToken},
+            query: route.query,
+          })
         })
       },
       (errorMsg: string) => {
@@ -114,7 +123,6 @@ const initActive = async () => {
       }
     )
   } catch (error) {
-    console.error(error)
   }
 }
 
@@ -126,7 +134,7 @@ watch(
       initActive()
     }
   },
-  { immediate: true }
+  {immediate: true}
 )
 </script>
 

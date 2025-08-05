@@ -42,10 +42,13 @@ import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import { t } from '@/locales'
 
 const route = useRoute()
+const {
+  query: { from },
+} = route
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
     return 'systemShare'
-  } else if (route.path.includes('resource-management')) {
+  } else if (route.path.includes('resource-management') || from === 'systemManage') {
     return 'systemManage'
   } else {
     return 'workspace'

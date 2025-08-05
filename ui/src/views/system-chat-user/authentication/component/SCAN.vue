@@ -34,7 +34,7 @@
             <div v-if="item.isValid" class="border-t mt-16">
               <el-row :gutter="12" class="mt-16">
                 <el-col v-for="(value, key) in item.config" :key="key" :span="12">
-                  <el-text type="info">{{ formatFieldName(key, item) }}</el-text>
+                  <el-text type="info" class="lighter">{{ formatFieldName(key, item) }}</el-text>
                   <div class="mt-4 mb-16 flex align-center">
                     <span
                       v-if="key !== 'app_secret'"
@@ -89,7 +89,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { copyClick } from '@/utils/clipboard'
 import EditModel from './EditModal.vue'
-import platformApi from '@/api/system/platform-source'
+import platformApi from '@/api/chat-user/auth-setting.ts'
 import { MsgError, MsgSuccess } from '@/utils/message'
 import { t } from '@/locales'
 
@@ -148,7 +148,7 @@ function createPlatform(key: string, name: string): Platform {
 
   return {
     key,
-    logoSrc: new URL(`../../../assets/logo/logo_${logo}.svg`, import.meta.url).href,
+    logoSrc: new URL(`../../../../assets/logo/logo_${logo}.svg`, import.meta.url).href,
     name,
     isActive: false,
     isValid: false,

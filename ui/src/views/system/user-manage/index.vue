@@ -19,6 +19,12 @@
             <el-option :label="$t('views.login.loginForm.username.label')" value="username" />
             <el-option :label="$t('views.userManage.userForm.nick_name.label')" value="nick_name" />
             <el-option :label="$t('views.login.loginForm.email.label')" value="email" />
+            <el-option :label="$t('common.status.label')" value="is_active" />
+            <el-option
+              v-if="user.isEE() || user.isPE()"
+              :label="$t('views.userManage.source.label')"
+              value="source"
+            />
           </el-select>
           <el-input
             v-if="search_type === 'username'"
@@ -44,6 +50,33 @@
             clearable
             :placeholder="$t('common.inputPlaceholder')"
           />
+          <el-select
+            v-else-if="search_type === 'is_active'"
+            v-model="search_form.is_active"
+            @change="getList"
+            clearable
+            style="width: 220px"
+          >
+            <el-option :label="$t('common.status.enabled')" :value="true" />
+            <el-option :label="$t('common.status.disabled')" :value="false" />
+          </el-select>
+          <el-select
+            v-else-if="search_type === 'source'"
+            v-model="search_form.source"
+            @change="getList"
+            style="width: 220px"
+            clearable
+            :placeholder="$t('common.inputPlaceholder')"
+          >
+            <el-option :label="$t('views.userManage.source.local')" value="LOCAL" />
+            <el-option label="CAS" value="CAS" />
+            <el-option label="LDAP" value="LDAP" />
+            <el-option label="OIDC" value="OIDC" />
+            <el-option label="OAuth2" value="OAuth2" />
+            <el-option :label="$t('views.userManage.source.wecom')" value="wecom" />
+            <el-option :label="$t('views.userManage.source.lark')" value="lark" />
+            <el-option :label="$t('views.userManage.source.dingtalk')" value="dingtalk" />
+          </el-select>
         </div>
       </div>
       <app-table
@@ -177,7 +210,7 @@
                   :title="$t('common.edit')"
                   v-if="hasPermission([RoleConst.ADMIN, PermissionConst.USER_EDIT], 'OR')"
                 >
-                  <el-icon><EditPen /></el-icon>
+                  <AppIcon iconName="app-edit"></AppIcon>
                 </el-button>
               </span>
             </el-tooltip>
@@ -194,7 +227,7 @@
                   :title="$t('views.userManage.setting.updatePwd')"
                   v-if="hasPermission([RoleConst.ADMIN, PermissionConst.USER_EDIT], 'OR')"
                 >
-                  <el-icon><Lock /></el-icon>
+                  <AppIcon iconName="app-key"></AppIcon>
                 </el-button>
               </span>
             </el-tooltip>
@@ -207,7 +240,7 @@
                 :title="$t('common.delete')"
                 v-if="hasPermission([RoleConst.ADMIN, PermissionConst.USER_DELETE], 'OR')"
               >
-                <el-icon><Delete /></el-icon>
+                <AppIcon iconName="app-delete"></AppIcon>
               </el-button>
             </el-tooltip>
           </template>
@@ -238,10 +271,14 @@ const search_form = ref<{
   username: string
   nick_name?: string
   email?: string
+  is_active?: boolean | null
+  source?: string | null
 }>({
   username: '',
   nick_name: '',
   email: '',
+  is_active: null,
+  source: '',
 })
 
 const UserDrawerRef = ref()
@@ -257,7 +294,7 @@ const paginationConfig = reactive({
 const userTableData = ref<any[]>([])
 
 const search_type_change = () => {
-  search_form.value = { username: '', nick_name: '', email: '' }
+  search_form.value = { username: '', nick_name: '', email: '', is_active: null }
 }
 
 function handleSizeChange() {
@@ -267,9 +304,9 @@ function handleSizeChange() {
 
 function getList() {
   const params: any = {}
-  if (search_form.value[search_type.value as keyof typeof search_form.value]) {
-    params[search_type.value] =
-      search_form.value[search_type.value as keyof typeof search_form.value]
+  const searchValue = search_form.value[search_type.value as keyof typeof search_form.value]
+  if (searchValue !== undefined && searchValue !== null && searchValue !== '') {
+    params[search_type.value] = searchValue
   }
   return userManageApi.getUserManage(paginationConfig, params, loading).then((res) => {
     userTableData.value = res.data.records.map((item: any) => ({
